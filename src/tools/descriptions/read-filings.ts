@@ -15,7 +15,7 @@ Intelligent meta-tool for reading SEC filing content. Takes a natural language q
 
 ## When NOT to Use
 
-- Stock prices (use financial_search)
+- Stock prices (use web_search)
 - Financial statements data in structured format (use financial_metrics)
 - Company news (use financial_search)
 - Analyst estimates (use financial_search)

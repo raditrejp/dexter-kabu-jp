@@ -7,6 +7,7 @@ Search the web for current information on any topic. Returns relevant search res
 
 ## When to Use
 
+- Stock prices (current or historical) for equities
 - Factual questions about entities (companies, people, organizations) where status can change
 - Current events, breaking news, recent developments
 - Technology updates, product announcements, industry trends
@@ -15,8 +16,7 @@ Search the web for current information on any topic. Returns relevant search res
 
 ## When NOT to Use
 
-- Financial data queries (use financial_search instead - it has structured, reliable data)
-- Queries about stock prices, company financials, SEC filings, or analyst estimates
+- Structured financial data (company financials, SEC filings, analyst estimates, key ratios - use financial_search instead)
 - Pure conceptual/definitional questions ("What is a DCF?")
 
 ## Usage Notes

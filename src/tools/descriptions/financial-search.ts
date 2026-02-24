@@ -3,12 +3,11 @@
  * Used in the system prompt to guide the LLM on when and how to use this tool.
  */
 export const FINANCIAL_SEARCH_DESCRIPTION = `
-Intelligent meta-tool for financial data research. Takes a natural language query and automatically routes to appropriate financial data sources including stock prices, company financials, SEC filings, analyst estimates, and more.
+Intelligent meta-tool for financial data research. Takes a natural language query and automatically routes to appropriate financial data sources for company financials, SEC filings, analyst estimates, and more.
 
 ## When to Use
 
 - Company facts (sector, industry, market cap, number of employees, listing date, exchange, location, weighted average shares, website)
-- Stock prices (current snapshots or historical data)
 - Company financials (income statements, balance sheets, cash flow statements)
 - Financial metrics (P/E ratio, market cap, EPS, dividend yield, enterprise value)
 - Analyst estimates and price targets
@@ -20,6 +19,7 @@ Intelligent meta-tool for financial data research. Takes a natural language quer
 
 ## When NOT to Use
 
+- Stock prices, current or historical (use web_search instead)
 - General web searches or non-financial topics (use web_search instead)
 - Questions that don't require external financial data (answer directly from knowledge)
 - Non-public company information

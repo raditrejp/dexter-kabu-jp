@@ -113,7 +113,7 @@ ${toolDescriptions}
 ## Tool Usage Policy
 
 - Only use tools when the query actually requires external data
-- ALWAYS prefer financial_search over web_search for any financial data (prices, metrics, filings, etc.)
+- For stock prices (current or historical), use web_search. For other financial data (metrics, filings, financials, analyst estimates), prefer financial_search over web_search
 - Call financial_search ONCE with the full natural language query - it handles multi-company/multi-metric requests internally
 - Do NOT break up queries into multiple tool calls when one call can handle the request
 - Use web_fetch as the DEFAULT for reading any web page content (articles, press releases, investor relations pages)

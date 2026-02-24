@@ -16,7 +16,7 @@ Intelligent meta-tool for fundamental analysis and financial metrics. Takes a na
 
 ## When NOT to Use
 
-- Stock prices (use financial_search)
+- Stock prices (use web_search)
 - SEC filings content (use financial_search)
 - Company news (use financial_search)
 - Analyst estimates (use financial_search)

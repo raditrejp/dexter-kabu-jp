@@ -93,7 +93,7 @@ export function createFinancialSearch(model: string): DynamicStructuredTool {
 - Financial metrics (P/E ratio, market cap, EPS, dividend yield)
 - Analyst estimates and price targets
 - Insider trading activity
-- Cryptocurrency prices`,
+- Cryptocurrency prices. For stock prices (current or historical) use web_search instead.`,
     schema: FinancialSearchInputSchema,
     func: async (input, _runManager, config?: RunnableConfig) => {
       const onProgress = config?.metadata?.onProgress as ((msg: string) => void) | undefined;

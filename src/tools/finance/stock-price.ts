@@ -6,7 +6,7 @@ import { exaSearch, perplexitySearch, tavilySearch } from '../search/index.js';
 import { logger } from '@/utils';
 
 export const STOCK_PRICE_DESCRIPTION = `
-Fetches current stock prices for equities. Uses Yahoo Finance as the primary source and falls back to web search when Yahoo is unavailable.
+Fetches current stock price snapshots for equities, including market cap and shares outstanding. Uses Yahoo Finance as the primary source and falls back to web search when Yahoo is unavailable.
 `.trim();
 
 const StockPriceInputSchema = z.object({
@@ -57,7 +57,7 @@ async function fallbackViaWebSearch(ticker: string): Promise<{ data: unknown; so
 export const getStockPrice = new DynamicStructuredTool({
   name: 'get_stock_price',
   description:
-    'Fetches the current stock price snapshot for an equity ticker, including current price, change, percent change, market status, volume, and currency.',
+    'Fetches the current stock price snapshot for an equity ticker, including current price, change, percent change, market cap, shares outstanding, market status, volume, and currency.',
   schema: StockPriceInputSchema,
   func: async (input) => {
     const ticker = input.ticker.trim().toUpperCase();
@@ -73,6 +73,8 @@ export const getStockPrice = new DynamicStructuredTool({
           regular_market_price: quote.regularMarketPrice ?? null,
           regular_market_change: quote.regularMarketChange ?? null,
           regular_market_change_percent: quote.regularMarketChangePercent ?? null,
+          market_cap: quote.marketCap ?? null,
+          shares_outstanding: quote.sharesOutstanding ?? null,
           currency: quote.currency ?? null,
           market_state: quote.marketState ?? null,
           regular_market_time: quote.regularMarketTime ?? null,

@@ -100,9 +100,9 @@ Given a user's natural language query about financial data, call the appropriate
    - "YTD" → start_date Jan 1 of current year, end_date today
 
 3. **Tool Selection**:
-   - For a current stock quote/snapshot (price now) → get_stock_price
+   - For a current stock quote/snapshot (price, market cap now) → get_stock_price
    - For "historical" or "over time" data, use date-range tools
-   - For P/E ratio, market cap, valuation metrics → get_key_ratios
+   - For historical P/E ratio, historical market cap, valuation metrics over time → get_key_ratios
    - For revenue, earnings, profitability → get_income_statements
    - For debt, assets, equity → get_balance_sheets
    - For cash flow, free cash flow → get_cash_flow_statements

@@ -7,6 +7,7 @@ import { extractTextContent, hasToolCalls } from '../utils/ai-message.js';
 import { InMemoryChatHistory } from '../utils/in-memory-chat-history.js';
 import { buildHistoryContext } from '../utils/history-context.js';
 import { estimateTokens, CONTEXT_THRESHOLD, KEEP_TOOL_USES } from '../utils/tokens.js';
+import { formatUserFacingError, isContextOverflowError } from '../utils/errors.js';
 import type { AgentConfig, AgentEvent, ContextClearedEvent, TokenUsage } from '../agent/types.js';
 import { createRunContext, type RunContext } from './run-context.js';
 import { buildFinalAnswerContext } from './final-answer-context.js';
@@ -15,6 +16,8 @@ import { AgentToolExecutor } from './tool-executor.js';
 
 const DEFAULT_MODEL = 'gpt-5.2';
 const DEFAULT_MAX_ITERATIONS = 10;
+const MAX_OVERFLOW_RETRIES = 2;
+const OVERFLOW_KEEP_TOOL_USES = 3;
 
 /**
  * The core agent class that handles the agent loop and tool execution.
@@ -71,10 +74,52 @@ export class Agent {
     let currentPrompt = this.buildInitialPrompt(query, inMemoryHistory);
 
     // Main agent loop
+    let overflowRetries = 0;
     while (ctx.iteration < this.maxIterations) {
       ctx.iteration++;
 
-      const { response, usage } = await this.callModel(currentPrompt);
+      let response: AIMessage | string;
+      let usage: TokenUsage | undefined;
+
+      while (true) {
+        try {
+          const result = await this.callModel(currentPrompt);
+          response = result.response;
+          usage = result.usage;
+          overflowRetries = 0;
+          break;
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+
+          if (isContextOverflowError(errorMessage) && overflowRetries < MAX_OVERFLOW_RETRIES) {
+            overflowRetries++;
+            const clearedCount = ctx.scratchpad.clearOldestToolResults(OVERFLOW_KEEP_TOOL_USES);
+
+            if (clearedCount > 0) {
+              yield { type: 'context_cleared', clearedCount, keptCount: OVERFLOW_KEEP_TOOL_USES };
+              currentPrompt = buildIterationPrompt(
+                query,
+                ctx.scratchpad.getToolResults(),
+                ctx.scratchpad.formatToolUsageForPrompt()
+              );
+              continue;
+            }
+          }
+
+          const totalTime = Date.now() - ctx.startTime;
+          yield {
+            type: 'done',
+            answer: `Error: ${formatUserFacingError(errorMessage)}`,
+            toolCalls: ctx.scratchpad.getToolCallRecords(),
+            iterations: ctx.iteration,
+            totalTime,
+            tokenUsage: ctx.tokenCounter.getUsage(),
+            tokensPerSecond: ctx.tokenCounter.getTokensPerSecond(totalTime),
+          };
+          return;
+        }
+      }
+
       ctx.tokenCounter.add(usage);
       const responseText = typeof response === 'string' ? response : extractTextContent(response);
 

@@ -1,5 +1,12 @@
 import { buildToolDescriptions } from '../tools/registry.js';
 import { buildSkillMetadataSection, discoverSkills } from '../skills/index.js';
+import { readFile } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // ============================================================================
 // Helper Functions
@@ -16,6 +23,27 @@ export function getCurrentDate(): string {
     day: 'numeric',
   };
   return new Date().toLocaleDateString('en-US', options);
+}
+
+/**
+ * Load SOUL.md content from user override or bundled file.
+ */
+export async function loadSoulDocument(): Promise<string | null> {
+  const userSoulPath = join(homedir(), '.dexter', 'SOUL.md');
+  try {
+    return await readFile(userSoulPath, 'utf-8');
+  } catch {
+    // Continue to bundled fallback when user override is missing/unreadable.
+  }
+
+  const bundledSoulPath = join(__dirname, '../../SOUL.md');
+  try {
+    return await readFile(bundledSoulPath, 'utf-8');
+  } catch {
+    // SOUL.md is optional; keep prompt behavior unchanged when absent.
+  }
+
+  return null;
 }
 
 /**
@@ -97,7 +125,7 @@ Keep tables compact:
  * Build the system prompt for the agent.
  * @param model - The model name (used to get appropriate tool descriptions)
  */
-export function buildSystemPrompt(model: string): string {
+export function buildSystemPrompt(model: string, soulContent?: string | null): string {
   const toolDescriptions = buildToolDescriptions(model);
 
   return `You are Dexter, a CLI assistant with access to research tools.
@@ -131,6 +159,13 @@ ${buildSkillsSection()}
 - Avoid over-engineering responses - match the scope of your answer to the question
 - Never ask users to provide raw data, paste values, or reference JSON/API internals - users ask questions, they don't have access to financial APIs
 - If data is incomplete, answer with what you have without exposing implementation details
+
+${soulContent ? `## Identity
+
+${soulContent}
+
+Embody the identity and investing philosophy described above. Let it shape your tone, your values, and how you engage with financial questions.
+` : ''}
 
 ## Response Format
 

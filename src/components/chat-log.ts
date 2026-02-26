@@ -157,6 +157,11 @@ export class ChatLogComponent extends Container {
     this.addChild(new UserQueryComponent(query));
   }
 
+  resetToolGrouping() {
+    this.lastToolName = null;
+    this.lastToolComponent = null;
+  }
+
   addInterrupted() {
     this.addChild(new Text(`${theme.muted('⎿  Interrupted · What should Dexter do instead?')}`, 0, 0));
   }

@@ -95,6 +95,7 @@ function renderHistory(chatLog: ChatLogComponent, history: AgentRunnerController
   chatLog.clearAll();
   for (const item of history) {
     chatLog.addQuery(item.query);
+    chatLog.resetToolGrouping();
 
     if (item.status === 'interrupted') {
       chatLog.addInterrupted();

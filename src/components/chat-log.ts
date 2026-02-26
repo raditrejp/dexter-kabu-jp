@@ -270,7 +270,7 @@ export class ChatLogComponent extends Container {
   }
 
   addPerformanceStats(duration: number, tokenUsage?: TokenUsage, tokensPerSecond?: number) {
-    if (!tokenUsage || duration < 10_000) {
+    if (!tokenUsage) {
       return;
     }
     const parts = [formatDuration(duration), `${tokenUsage.totalTokens.toLocaleString()} tokens`];

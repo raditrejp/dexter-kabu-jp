@@ -1,7 +1,7 @@
 {
-  "name": "dexter-ts",
-  "version": "2026.3.25",
-  "description": "Dexter - AI agent for deep financial research.",
+  "name": "kabu-dexter",
+  "version": "0.1.0",
+  "description": "日本株の自律型リサーチAIエージェント | AI agent for Japanese stock research",
   "type": "module",
   "main": "src/index.tsx",
   "bin": {

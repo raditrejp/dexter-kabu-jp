@@ -1,4 +1,12 @@
 {
+  "mcpServers": {
+    "radikabunavi": {
+      "url": "https://radikabunavi.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${RADIKABUNAVI_API_KEY}"
+      }
+    }
+  },
   "permissions": {
     "allow": [
       "Read(//var/folders/tb/2zz87c_j1ts7j5n8s48c76rc0000gn/T/gh-clones-1d4c5b58-8fc3-4f14-b0de-27d826de804c/python-training/notebooks/**)",

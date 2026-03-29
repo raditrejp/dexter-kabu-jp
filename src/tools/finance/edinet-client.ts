@@ -26,7 +26,7 @@ export class EdinetClient {
   constructor(apiKey: string) {
     if (!apiKey) {
       throw new Error(
-        'EDINET API key is required. Set EDINET_API_KEY environment variable.',
+        'EDINET DB API key is required. Set EDINETDB_API_KEY in .env (get yours free at https://edinetdb.jp/developers)',
       );
     }
     this.apiKey = apiKey;

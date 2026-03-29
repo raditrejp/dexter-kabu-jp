@@ -1,4 +1,5 @@
-import { StructuredToolInterface } from '@langchain/core/tools';
+import { StructuredToolInterface, DynamicStructuredTool } from '@langchain/core/tools';
+import { z } from 'zod';
 import { exaSearch, perplexitySearch, tavilySearch, WEB_SEARCH_DESCRIPTION, xSearchTool, X_SEARCH_DESCRIPTION } from './search/index.js';
 import { skillTool, SKILL_TOOL_DESCRIPTION } from './skill.js';
 import { webFetchTool, WEB_FETCH_DESCRIPTION } from './fetch/web-fetch.js';
@@ -15,6 +16,7 @@ import { JQuantsClient } from './finance/jquants-client.js';
 import { createGetStockPrice, GET_STOCK_PRICE_DESCRIPTION } from './finance/stock-price.js';
 import { tradingviewAvailable, createGetTechnicalIndicators, GET_TECHNICAL_INDICATORS_DESCRIPTION } from './finance/tradingview.js';
 import { tdnetAvailable, createGetDisclosures, GET_DISCLOSURES_DESCRIPTION } from './finance/tdnet.js';
+import { RadikabuNaviClient } from './finance/radikabunavi-client.js';
 
 /**
  * A registered tool with its rich description for system prompt injection.
@@ -143,6 +145,121 @@ export function getToolRegistry(model: string): RegisteredTool[] {
       });
     } catch {
       // JQuants client initialization failed — skip
+    }
+  }
+
+  // ラジ株ナビ MCP — financials, screener (via EDINET data)
+  if (process.env.RADIKABUNAVI_API_KEY) {
+    try {
+      const mcpClient = new RadikabuNaviClient(process.env.RADIKABUNAVI_API_KEY);
+
+      tools.push(
+        {
+          name: 'get_financials',
+          tool: new DynamicStructuredTool({
+            name: 'get_financials',
+            description: '日本企業の財務データ（売上、利益、ROE等）をEDINETデータから取得します。',
+            schema: z.object({
+              code: z.string().describe('証券コード（例: "7203"）'),
+              metrics: z.array(z.string()).optional().describe('取得する指標名の配列（省略時はデフォルト指標セット）'),
+              fiscalYear: z.string().optional().describe('特定の決算期末日（YYYY-MM-DD）。省略時は全年度'),
+            }),
+            func: async ({ code, metrics, fiscalYear }) => {
+              try {
+                const args: Record<string, unknown> = { code };
+                if (metrics) args.metrics = metrics;
+                if (fiscalYear) args.fiscalYear = fiscalYear;
+                return await mcpClient.callTool('get_edinet_financial_data', args);
+              } catch (error: unknown) {
+                return JSON.stringify({ error: error instanceof Error ? error.message : String(error) });
+              }
+            },
+          }),
+          description: `日本企業の財務データ（EDINET有価証券報告書ベース）を取得します。
+
+## When to Use
+- 決算データ（売上高、営業利益、純利益等）を確認したいとき
+- 財務指標（ROE、ROA、自己資本比率等）が必要なとき
+- 過去複数年の推移を分析したいとき
+
+## When NOT to Use
+- 株価データが必要なとき（→ get_stock_price）
+- テクニカル指標が必要なとき（→ get_technical_indicators）`,
+        },
+        {
+          name: 'get_key_ratios',
+          tool: new DynamicStructuredTool({
+            name: 'get_key_ratios',
+            description: '日本企業の主要財務指標サマリーを取得。',
+            schema: z.object({
+              code: z.string().describe('証券コード（例: "7203"）'),
+            }),
+            func: async ({ code }) => {
+              try {
+                return await mcpClient.callTool('get_edinet_financial_summary', { code });
+              } catch (error: unknown) {
+                return JSON.stringify({ error: error instanceof Error ? error.message : String(error) });
+              }
+            },
+          }),
+          description: `日本企業の主要財務指標サマリーを取得。
+
+## When to Use
+- PER、PBR、ROE等のバリュエーション指標を確認したいとき
+- 銘柄の財務概要をざっくり把握したいとき
+
+## When NOT to Use
+- 詳細な財務データや推移が必要なとき（→ get_financials）
+- 株価データが必要なとき（→ get_stock_price）`,
+        },
+        {
+          name: 'company_screener',
+          tool: new DynamicStructuredTool({
+            name: 'company_screener',
+            description: '日本株スクリーニング。条件を指定して銘柄を絞り込み。',
+            schema: z.object({
+              conditions: z.array(z.object({
+                metric: z.string().describe('指標名（例: roe, operatingMargin, equityRatio）'),
+                operator: z.enum(['>=', '<=', '>', '<', '==']).describe('比較演算子'),
+                value: z.number().describe('比較値'),
+              })).describe('スクリーニング条件の配列（AND条件）'),
+              sort: z.object({
+                metric: z.string(),
+                order: z.enum(['asc', 'desc']),
+              }).optional().describe('ソート条件'),
+              limit: z.number().optional().describe('返す件数の上限（デフォルト30）'),
+              sector: z.string().optional().describe('業種で絞り込み'),
+              market: z.string().optional().describe('市場で絞り込み（例: プライム）'),
+            }),
+            func: async ({ conditions, sort, limit, sector, market }) => {
+              try {
+                const args: Record<string, unknown> = { conditions };
+                if (sort) args.sort = sort;
+                if (limit) args.limit = limit;
+                if (sector) args.sector = sector;
+                if (market) args.market = market;
+                return await mcpClient.callTool('screen_stocks', args);
+              } catch (error: unknown) {
+                return JSON.stringify({ error: error instanceof Error ? error.message : String(error) });
+              }
+            },
+          }),
+          description: `日本株スクリーニング。約4,000社の財務データから条件検索。
+
+## When to Use
+- 特定条件に合う銘柄を探したいとき（例: 「ROE15%以上かつPBR1倍以下」）
+- セクター・市場別の銘柄リストが必要なとき
+
+## When NOT to Use
+- 特定銘柄の詳細分析（→ get_financials）
+- テクニカル条件でのスクリーニング（→ get_technical_indicators）
+
+## 利用可能な指標例
+roe, operatingMargin, equityRatio, salesGrowth, netCash, fcf, dividendPerShare 等108指標`,
+        },
+      );
+    } catch {
+      // RadikabuNavi MCP client initialization failed — skip
     }
   }
 

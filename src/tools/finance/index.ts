@@ -21,3 +21,5 @@ export {
   tdnetAvailable,
   GET_DISCLOSURES_DESCRIPTION,
 } from './tdnet.js';
+
+export { RadikabuNaviClient } from './radikabunavi-client.js';

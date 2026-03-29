@@ -5,6 +5,10 @@
       "headers": {
         "Authorization": "Bearer ${RADIKABUNAVI_API_KEY}"
       }
+    },
+    "tdnet": {
+      "command": "uvx",
+      "args": ["tdnet-disclosure-mcp", "serve"]
     }
   },
   "permissions": {

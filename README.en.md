@@ -132,7 +132,6 @@ MIT License. Originally forked from [virattt/dexter](https://github.com/virattt/
 ## Acknowledgements
 
 - [virattt/dexter](https://github.com/virattt/dexter) — The base AI research agent (18,000+ GitHub stars)
-- [edinetdb/dexter-jp](https://github.com/edinetdb/dexter-jp) — Japanese stock adaptation (EDINET DB API + J-Quants)
 - [jpmorganchase/python-training](https://github.com/jpmorganchase/python-training) — Monte Carlo, Altman Z'' and other analytical methods
 - [RadikabuNavi MCP](https://radikabunavi.com/mcp-service) — EDINET-based financials and screener
 - [J-Quants](https://jpx-jquants.com/) — Official TSE market data

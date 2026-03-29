@@ -8,7 +8,7 @@ For detailed documentation, see the [Japanese README](README.md).
 
 ## Key Features
 
-- **11 analysis skills**: SEPA, Dow Theory, Granville's Laws, supply-demand analysis, volume profile (shikori), DCF valuation, multi-factor screening, and more
+- **15 analysis skills**: SEPA, Dow Theory, Granville's Laws, supply-demand, DCF, Altman Z'' credit risk, Monte Carlo forecasting, correlation analysis, comprehensive analysis, and more
 - **ISQ Signal Framework**: Quantifies investment signals across 5 dimensions (confidence, intensity, expectation gap, timeliness, direction)
 - **Independent Evaluator**: AI-generated analysis is verified by a separate AI context across 4 quality axes (data sufficiency, consistency, insight, actionability)
 - **4 data sources**: JQuants API v2 + EDINET DB + TradingView MCP + TDnet MCP
@@ -54,7 +54,10 @@ After launching, you'll see a chat UI. Just talk to Dexter in Japanese (or Engli
 > 三菱UFJの需給を見て                  → Margin balance, short-sell ratio, investor flows
 > 6758のDCFで理論株価を出して          → 3-scenario DCF valuation
 > 半導体関連でスクリーニングして       → Multi-factor stock screening
-> 7203を分析して                       → Comprehensive analysis with ISQ scoring
+> 7203を分析して                       → Auto-runs all skills: DCF + Altman Z'' + SEPA + Dow + Granville + supply-demand + Monte Carlo + correlation
+> 7203の倒産リスクは？                 → Altman Z'' Score credit risk assessment
+> トヨタの株価をモンテカルロで予測して → Probabilistic price forecast with VaR
+> トヨタとTOPIXの相関は？              → Beta, correlation, regression analysis
 > トヨタとホンダを比較して             → Peer comparison (PER, PBR, ROE)
 > 7203の有報からリスク要因を読んで     → Extracts risk factors from securities reports
 ```
@@ -85,6 +88,10 @@ Dexter remembers past analyses. Analyzing the same stock again shows how signals
 | peer-comparison | Sector comparison across PER, PBR, ROE, ROIC |
 | earnings-calendar | Next earnings date, surprise history, volatility warnings |
 | x-research | X/Twitter market sentiment research |
+| altman-z | Altman Z'' Score credit risk analysis (safe/grey/distress zone) |
+| monte-carlo | Monte Carlo simulation — probabilistic price distribution, VaR, target price probability |
+| correlation | Cross-asset correlation, beta, regression statistics, idiosyncratic risk |
+| comprehensive-analysis | Auto-orchestrates all skills for full-spectrum stock analysis with integrated ISQ scoring |
 
 ## JQuants Plan Comparison
 

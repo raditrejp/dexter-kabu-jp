@@ -111,7 +111,7 @@ export function getConfigStatus(): ConfigStatus {
   }
 
   // Optional data sources
-  lines.push(`  ${edinetConfigured ? ok : '-'} EDINET DB: ${edinetConfigured ? '有効' : '未設定（任意）'}`);
+  lines.push(`  ${edinetConfigured ? ok : ng} EDINET DB: ${edinetConfigured ? '有効（財務・有報・スクリーナー）' : '未設定 -- EDINETDB_API_KEY を .env に設定してください（無料: edinetdb.jp/developers）'}`);
   lines.push(`  ${webSearch ? ok : '-'} Web検索: ${webSearch ?? '未設定（任意）'}`);
   lines.push(`  ${xSearchConfigured ? ok : '-'} X検索: ${xSearchConfigured ? '有効' : '未設定（任意）'}`);
 

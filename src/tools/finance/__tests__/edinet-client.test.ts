@@ -10,7 +10,7 @@ describe('EdinetClient constructor', () => {
   });
 
   test('throws when API key is empty', () => {
-    expect(() => new EdinetClient('')).toThrow('EDINET API key is required');
+    expect(() => new EdinetClient('')).toThrow('EDINET DB API key is required');
   });
 });
 

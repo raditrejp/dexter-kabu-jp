@@ -12,13 +12,7 @@ import { memoryGetTool, MEMORY_GET_DESCRIPTION, memorySearchTool, MEMORY_SEARCH_
 import { discoverSkills } from '../skills/index.js';
 import type { JQuantsPlan } from '../config/index.js';
 import { JQuantsClient } from './finance/jquants-client.js';
-import { EdinetClient } from './finance/edinet-client.js';
-import { CompanyResolver } from './finance/resolver.js';
 import { createGetStockPrice, GET_STOCK_PRICE_DESCRIPTION } from './finance/stock-price.js';
-import { createGetFinancials, GET_FINANCIALS_DESCRIPTION } from './finance/financials.js';
-import { createReadFilings, READ_FILINGS_DESCRIPTION } from './finance/read-filings.js';
-import { createGetKeyRatios, GET_KEY_RATIOS_DESCRIPTION } from './finance/key-ratios.js';
-import { createCompanyScreener, COMPANY_SCREENER_DESCRIPTION } from './finance/screener.js';
 import { tradingviewAvailable, createGetTechnicalIndicators, GET_TECHNICAL_INDICATORS_DESCRIPTION } from './finance/tradingview.js';
 import { tdnetAvailable, createGetDisclosures, GET_DISCLOSURES_DESCRIPTION } from './finance/tdnet.js';
 
@@ -149,39 +143,6 @@ export function getToolRegistry(model: string): RegisteredTool[] {
       });
     } catch {
       // JQuants client initialization failed — skip
-    }
-  }
-
-  // EDINET DB API — financials, filings, ratios, screener
-  if (process.env.EDINETDB_API_KEY) {
-    try {
-      const edinetClient = new EdinetClient(process.env.EDINETDB_API_KEY);
-      const resolver = new CompanyResolver(edinetClient);
-
-      tools.push(
-        {
-          name: 'get_financials',
-          tool: createGetFinancials(edinetClient, resolver),
-          description: GET_FINANCIALS_DESCRIPTION,
-        },
-        {
-          name: 'read_filings',
-          tool: createReadFilings(edinetClient, resolver),
-          description: READ_FILINGS_DESCRIPTION,
-        },
-        {
-          name: 'get_key_ratios',
-          tool: createGetKeyRatios(edinetClient, resolver),
-          description: GET_KEY_RATIOS_DESCRIPTION,
-        },
-        {
-          name: 'company_screener',
-          tool: createCompanyScreener(edinetClient),
-          description: COMPANY_SCREENER_DESCRIPTION,
-        },
-      );
-    } catch {
-      // EDINET client initialization failed — skip
     }
   }
 

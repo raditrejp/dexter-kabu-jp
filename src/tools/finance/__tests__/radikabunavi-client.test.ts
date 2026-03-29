@@ -20,7 +20,7 @@ describe('RadikabuNaviClient', () => {
 
     function mockFetch(responses: Array<{ status?: number; headers?: Record<string, string>; body: string }>) {
       let callIndex = 0;
-      globalThis.fetch = mock(async () => {
+      (globalThis as any).fetch = mock(async () => {
         const res = responses[callIndex++] ?? responses[responses.length - 1];
         return {
           ok: (res.status ?? 200) >= 200 && (res.status ?? 200) < 300,
@@ -34,7 +34,7 @@ describe('RadikabuNaviClient', () => {
 
     test('initialize sends JSON-RPC initialize and notifications/initialized', async () => {
       const calls: string[] = [];
-      globalThis.fetch = mock(async (_url: string, opts: RequestInit) => {
+      (globalThis as any).fetch = mock(async (_url: string, opts: RequestInit) => {
         const body = JSON.parse(opts.body as string);
         calls.push(body.method);
         return {
@@ -117,7 +117,7 @@ describe('RadikabuNaviClient', () => {
 
     test('propagates session ID on subsequent requests', async () => {
       const sentHeaders: Record<string, string>[] = [];
-      globalThis.fetch = mock(async (_url: string, opts: RequestInit) => {
+      (globalThis as any).fetch = mock(async (_url: string, opts: RequestInit) => {
         sentHeaders.push(Object.fromEntries(Object.entries(opts.headers as Record<string, string>)));
         const body = JSON.parse(opts.body as string);
         return {

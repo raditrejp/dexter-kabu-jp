@@ -111,7 +111,6 @@ MIT License. Originally forked from [virattt/dexter](https://github.com/virattt/
 ## Acknowledgements
 
 - [virattt/dexter](https://github.com/virattt/dexter) — The base AI research agent
-- [edinetdb/dexter-jp](https://github.com/edinetdb/dexter-jp) — Reference implementation for Japanese stocks
 - [RadikabuNavi MCP](https://radikabunavi.com/mcp-service) — EDINET-based financials and screener
 - [J-Quants](https://jpx-jquants.com/) — Official TSE market data
 - [tdnet-disclosure-mcp](https://github.com/ajtgjmdjp/tdnet-disclosure-mcp) — Timely disclosure MCP server

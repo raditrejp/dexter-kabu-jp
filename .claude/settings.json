@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//var/folders/tb/2zz87c_j1ts7j5n8s48c76rc0000gn/T/gh-clones-1d4c5b58-8fc3-4f14-b0de-27d826de804c/python-training/notebooks/**)",
+      "Read(//private/var/folders/tb/2zz87c_j1ts7j5n8s48c76rc0000gn/T/gh-clones-1d4c5b58-8fc3-4f14-b0de-27d826de804c/python-training/notebooks/**)",
+      "Read(//var/folders/tb/2zz87c_j1ts7j5n8s48c76rc0000gn/T/gh-clones-1d4c5b58-8fc3-4f14-b0de-27d826de804c/python-training/binder/**)",
+      "Read(//private/var/folders/tb/2zz87c_j1ts7j5n8s48c76rc0000gn/T/gh-clones-1d4c5b58-8fc3-4f14-b0de-27d826de804c/python-training/binder/**)",
+      "WebFetch(domain:api.edinet-fsa.go.jp)",
+      "WebFetch(domain:disclosure.edinet-fsa.go.jp)",
+      "WebFetch(domain:disclosure2.edinet-fsa.go.jp)"
+    ]
+  }
+}

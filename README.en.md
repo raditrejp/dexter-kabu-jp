@@ -43,12 +43,30 @@ cp env.example .env
 bun start
 ```
 
+## Usage
+
+After launching, you'll see a chat UI. Just talk to Dexter in Japanese (or English) — it automatically selects the right tools and skills.
+
+```
+> 7203の株価を見て                     → Fetches 60-day OHLCV data
+> トヨタの財務を見て                   → Retrieves financials (revenue, profit, ROE)
+> 7203をSEPA分析して                   → Runs Minervini's 7-criteria check
+> 三菱UFJの需給を見て                  → Margin balance, short-sell ratio, investor flows
+> 6758のDCFで理論株価を出して          → 3-scenario DCF valuation
+> 半導体関連でスクリーニングして       → Multi-factor stock screening
+> 7203を分析して                       → Comprehensive analysis with ISQ scoring
+> トヨタとホンダを比較して             → Peer comparison (PER, PBR, ROE)
+> 7203の有報からリスク要因を読んで     → Extracts risk factors from securities reports
+```
+
+Dexter remembers past analyses. Analyzing the same stock again shows how signals have changed.
+
 ## Data Sources
 
 | Source | What it provides | Required |
 |--------|-----------------|:--------:|
 | **JQuants API v2** | Price, financials, margin balance, sector flows | Yes (free tier) |
-| **EDINET DB** | Securities reports (XBRL) | Optional |
+| **EDINET DB** | Financials, filings, key ratios, screener | Recommended (free) |
 | **TradingView MCP** | Technical indicators (RSI, MACD, BB, etc.) | Optional |
 | **TDnet MCP** | Timely disclosure filings | Optional |
 

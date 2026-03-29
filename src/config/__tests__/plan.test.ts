@@ -50,51 +50,55 @@ describe('getPlanCapabilities', () => {
   });
 });
 
-// ── isEndpointAvailable ─────────────────────────────────────────────
+// ── isEndpointAvailable (V2 paths) ─────────────────────────────────
 
 describe('isEndpointAvailable', () => {
-  test('free plan has listed/info', () => {
-    expect(isEndpointAvailable('free', 'listed/info')).toBe(true);
+  test('free plan has equities/master', () => {
+    expect(isEndpointAvailable('free', 'equities/master')).toBe(true);
   });
 
-  test('free plan has prices/daily_quotes', () => {
-    expect(isEndpointAvailable('free', 'prices/daily_quotes')).toBe(true);
+  test('free plan has equities/bars/daily', () => {
+    expect(isEndpointAvailable('free', 'equities/bars/daily')).toBe(true);
   });
 
-  test('free plan does NOT have markets/trades_spec', () => {
-    expect(isEndpointAvailable('free', 'markets/trades_spec')).toBe(false);
+  test('free plan does NOT have equities/investor-types', () => {
+    expect(isEndpointAvailable('free', 'equities/investor-types')).toBe(false);
   });
 
-  test('light plan has markets/trades_spec', () => {
-    expect(isEndpointAvailable('light', 'markets/trades_spec')).toBe(true);
+  test('light plan has equities/investor-types', () => {
+    expect(isEndpointAvailable('light', 'equities/investor-types')).toBe(true);
   });
 
   test('light plan inherits free endpoints', () => {
-    expect(isEndpointAvailable('light', 'listed/info')).toBe(true);
-    expect(isEndpointAvailable('light', 'fins/statements')).toBe(true);
+    expect(isEndpointAvailable('light', 'equities/master')).toBe(true);
+    expect(isEndpointAvailable('light', 'fins/summary')).toBe(true);
   });
 
-  test('standard plan has indices', () => {
-    expect(isEndpointAvailable('standard', 'indices')).toBe(true);
+  test('standard plan has indices/bars/daily', () => {
+    expect(isEndpointAvailable('standard', 'indices/bars/daily')).toBe(true);
+  });
+
+  test('standard plan has markets/margin-interest', () => {
+    expect(isEndpointAvailable('standard', 'markets/margin-interest')).toBe(true);
   });
 
   test('standard plan does NOT have fins/dividend', () => {
     expect(isEndpointAvailable('standard', 'fins/dividend')).toBe(false);
   });
 
-  test('premium plan has fins/dividend and fins/fs_details', () => {
+  test('premium plan has fins/dividend and fins/details', () => {
     expect(isEndpointAvailable('premium', 'fins/dividend')).toBe(true);
-    expect(isEndpointAvailable('premium', 'fins/fs_details')).toBe(true);
+    expect(isEndpointAvailable('premium', 'fins/details')).toBe(true);
   });
 
   test('premium plan inherits all lower-tier endpoints', () => {
-    expect(isEndpointAvailable('premium', 'listed/info')).toBe(true);
-    expect(isEndpointAvailable('premium', 'markets/trades_spec')).toBe(true);
-    expect(isEndpointAvailable('premium', 'indices')).toBe(true);
+    expect(isEndpointAvailable('premium', 'equities/master')).toBe(true);
+    expect(isEndpointAvailable('premium', 'equities/investor-types')).toBe(true);
+    expect(isEndpointAvailable('premium', 'indices/bars/daily')).toBe(true);
   });
 
   test('prefix matching works (endpoint with query params)', () => {
-    expect(isEndpointAvailable('free', 'listed/info?code=7203')).toBe(true);
+    expect(isEndpointAvailable('free', 'equities/master?code=72030')).toBe(true);
   });
 
   test('returns false for completely unknown endpoint', () => {

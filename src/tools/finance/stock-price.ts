@@ -1,5 +1,5 @@
 /**
- * get_stock_price tool — fetches OHLCV data for Japanese stocks via JQuants API.
+ * get_stock_price tool — fetches OHLCV data for Japanese stocks via JQuants API v2.
  */
 
 import { DynamicStructuredTool } from '@langchain/core/tools';
@@ -20,24 +20,26 @@ export const GET_STOCK_PRICE_DESCRIPTION = `
 - リアルタイム株価が必要なとき（15分遅延あり）
 `;
 
-interface DailyQuote {
+/** JQuants API v2 daily bar record. */
+interface DailyBar {
   Date: string;
   Code: string;
-  Open: number;
-  High: number;
-  Low: number;
-  Close: number;
-  Volume: number;
-  TurnoverValue?: number;
-  AdjustmentOpen?: number;
-  AdjustmentHigh?: number;
-  AdjustmentLow?: number;
-  AdjustmentClose?: number;
-  AdjustmentVolume?: number;
+  O: number;    // Open
+  H: number;    // High
+  L: number;    // Low
+  C: number;    // Close
+  Vo: number;   // Volume
+  Va?: number;  // Turnover Value
+  AdjFactor?: number;
+  AdjO?: number;
+  AdjH?: number;
+  AdjL?: number;
+  AdjC?: number;
+  AdjVo?: number;
 }
 
-interface DailyQuotesResponse {
-  daily_quotes: DailyQuote[];
+interface DailyBarsResponse {
+  data: DailyBar[];
 }
 
 /**
@@ -78,8 +80,8 @@ export function createGetStockPrice(
             .toISOString()
             .slice(0, 10);
 
-        const response = await jquantsClient.get<DailyQuotesResponse>(
-          'prices/daily_quotes',
+        const response = await jquantsClient.get<DailyBarsResponse>(
+          'equities/bars/daily',
           {
             code: code5,
             from: fromDate,
@@ -87,8 +89,8 @@ export function createGetStockPrice(
           },
         );
 
-        const quotes = response.daily_quotes ?? [];
-        if (quotes.length === 0) {
+        const bars = response.data ?? [];
+        if (bars.length === 0) {
           return JSON.stringify({
             error: `銘柄コード ${code} の株価データが見つかりませんでした。`,
           });
@@ -96,17 +98,17 @@ export function createGetStockPrice(
 
         return JSON.stringify({
           code,
-          count: quotes.length,
+          count: bars.length,
           from: fromDate,
           to: toDate,
-          quotes: quotes.map((q) => ({
+          quotes: bars.map((q) => ({
             date: q.Date,
-            open: q.AdjustmentOpen ?? q.Open,
-            high: q.AdjustmentHigh ?? q.High,
-            low: q.AdjustmentLow ?? q.Low,
-            close: q.AdjustmentClose ?? q.Close,
-            volume: q.AdjustmentVolume ?? q.Volume,
-            turnover: q.TurnoverValue,
+            open: q.AdjO ?? q.O,
+            high: q.AdjH ?? q.H,
+            low: q.AdjL ?? q.L,
+            close: q.AdjC ?? q.C,
+            volume: q.AdjVo ?? q.Vo,
+            turnover: q.Va,
           })),
         });
       } catch (error: unknown) {

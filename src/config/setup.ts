@@ -85,7 +85,7 @@ function findAllConfigured(checks: EnvCheck[]): string[] {
  */
 export function getConfigStatus(): ConfigStatus {
   const plan = ((process.env.JQUANTS_PLAN as JQuantsPlan) ?? 'free') as JQuantsPlan;
-  const jquantsConfigured = isSet('JQUANTS_MAIL') && isSet('JQUANTS_PASSWORD');
+  const jquantsConfigured = isSet('JQUANTS_API_KEY');
   const llmProviders = findAllConfigured(LLM_PROVIDERS);
   const llmProvider = llmProviders.length > 0 ? llmProviders.join(', ') : null;
   const webSearch = findFirstConfigured(WEB_SEARCH_PROVIDERS);
@@ -100,7 +100,7 @@ export function getConfigStatus(): ConfigStatus {
   if (jquantsConfigured) {
     lines.push(`  ${ok} JQuants: ${PLAN_LABELS[plan]}（${PLAN_FEATURE_NOTES[plan]}）`);
   } else {
-    lines.push(`  ${ng} JQuants: 未設定 -- JQUANTS_MAIL, JQUANTS_PASSWORD を .env に設定してください`);
+    lines.push(`  ${ng} JQuants: 未設定 -- JQUANTS_API_KEY を .env に設定してください`);
   }
 
   // LLM status

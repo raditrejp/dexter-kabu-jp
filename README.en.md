@@ -34,7 +34,7 @@ bun install
 
 ```bash
 cp env.example .env
-# Edit .env — set JQUANTS_MAIL, JQUANTS_PASSWORD, and at least one LLM API key
+# Edit .env — set JQUANTS_API_KEY and at least one LLM API key
 ```
 
 ### Run

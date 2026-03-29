@@ -1,8 +1,10 @@
 /**
- * JQuants API plan configuration.
+ * JQuants API v2 plan configuration.
  *
  * Defines plan tiers, data-range limits, rate limits, and which API
  * endpoints are available on each plan.
+ *
+ * V2 endpoint paths: https://jpx-jquants.com/en/spec/migration-v1-v2
  */
 
 // ── Plan types ──────────────────────────────────────────────────────
@@ -19,32 +21,37 @@ export interface PlanCapabilities {
 }
 
 // ── Endpoint sets (cumulative) ──────────────────────────────────────
+// V2 paths — see https://jpx-jquants.com/en/spec/migration-v1-v2
 
 const FREE_ENDPOINTS = new Set([
-  'listed/info',
-  'prices/daily_quotes',
-  'fins/statements',
-  'fins/announcement',
+  'equities/master',           // was: listed/info
+  'equities/bars/daily',       // was: prices/daily_quotes
+  'fins/summary',              // was: fins/statements
+  'equities/earnings-calendar', // was: fins/announcement
 ]);
 
 const LIGHT_ENDPOINTS = new Set([
   ...FREE_ENDPOINTS,
-  'markets/trades_spec',
-  'indices/topix',
+  'equities/investor-types',   // was: markets/trades_spec
+  'indices/bars/daily/topix',  // was: indices/topix
 ]);
 
 const STANDARD_ENDPOINTS = new Set([
   ...LIGHT_ENDPOINTS,
-  'indices',
-  'option/index_option',
+  'indices/bars/daily',                // was: indices
+  'derivatives/bars/daily/options/225', // was: option/index_option
+  'markets/margin-interest',           // was: markets/weekly_margin_interest
 ]);
 
 const PREMIUM_ENDPOINTS = new Set([
   ...STANDARD_ENDPOINTS,
-  'markets/futures',
-  'markets/options',
-  'fins/dividend',
-  'fins/fs_details',
+  'derivatives/bars/daily/futures',  // was: markets/futures
+  'derivatives/bars/daily/options',  // was: markets/options
+  'fins/dividend',                   // unchanged
+  'fins/details',                    // was: fins/fs_details
+  'markets/short-ratio',            // was: markets/short_selling
+  'markets/short-sale-report',      // was: markets/short_selling_positions
+  'markets/margin-alert',           // was: markets/daily_margin_interest
 ]);
 
 // ── Plan capabilities constant ──────────────────────────────────────
@@ -85,8 +92,8 @@ export function getPlanCapabilities(plan: JQuantsPlan): PlanCapabilities {
  * Check whether a specific endpoint path is available on the given plan.
  *
  * The `endpoint` argument is matched as a prefix against the plan's
- * endpoint set, so `"listed/info"` will match the endpoint entry
- * `"listed/info"`.
+ * endpoint set, so `"equities/master"` will match the endpoint entry
+ * `"equities/master"`.
  */
 export function isEndpointAvailable(
   plan: JQuantsPlan,
@@ -95,8 +102,8 @@ export function isEndpointAvailable(
   const caps = PLAN_CAPABILITIES[plan];
   // Exact match first
   if (caps.endpoints.has(endpoint)) return true;
-  // Prefix match: allow "prices/daily_quotes" to match when caller
-  // passes "prices/daily_quotes?code=7203"
+  // Prefix match: allow "equities/bars/daily" to match when caller
+  // passes "equities/bars/daily?code=7203"
   for (const ep of caps.endpoints) {
     if (endpoint.startsWith(ep)) return true;
   }

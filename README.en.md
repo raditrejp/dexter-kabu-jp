@@ -43,7 +43,9 @@ On first launch, the AI will guide you through API key setup:
 → 3-scenario (conservative/base/optimistic) fair value calculation
 ```
 
-## Quick Start
+## Standalone App (Terminal)
+
+For using as a standalone chat app without Claude Code.
 
 ### Prerequisites
 

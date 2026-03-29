@@ -69,7 +69,9 @@ ${skillList}
 - Check if available skills can help complete the task more effectively
 - When a skill is relevant, invoke it IMMEDIATELY as your first action
 - Skills provide specialized workflows for complex tasks (e.g., DCF valuation)
-- Do not invoke a skill that has already been invoked for the current query`;
+- Do not invoke a skill that has already been invoked for the current query
+- **Default analysis skill:** When the user asks to analyze a specific stock without specifying a particular skill (e.g., "○○を分析して", "○○はどう？", "○○の買い時は？"), use the \`comprehensive-analysis\` skill as the entry point. It orchestrates all relevant sub-skills automatically.
+- When the user explicitly requests a specific analysis (e.g., "DCFで分析して", "テクニカル分析して"), use that specific skill instead of comprehensive-analysis.`;
 }
 
 function buildMemorySection(memoryFiles: string[], memoryContext?: string | null): string {

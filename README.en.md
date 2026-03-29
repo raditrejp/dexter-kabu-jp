@@ -20,12 +20,13 @@ For detailed documentation, see the [Japanese README](README.md).
 
 - [Bun](https://bun.sh/) (v1.0+)
 - [JQuants API](https://jpx-jquants.com/) account (free tier available)
+- [EDINET DB](https://edinetdb.jp/developers) API key (recommended, free) — required for financials, filings, screener, and Altman Z'' analysis
 - At least one LLM API key (OpenAI / Anthropic / Google / Ollama)
 
 ### Install
 
 ```bash
-git clone https://github.com/your-username/dexter-kabu-jp.git
+git clone https://github.com/raditrejp/dexter-kabu-jp.git
 cd dexter-kabu-jp
 bun install
 ```

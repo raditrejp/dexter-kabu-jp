@@ -5,7 +5,14 @@
 import { DynamicStructuredTool } from '@langchain/core/tools';
 import { z } from 'zod';
 import type { JQuantsClient } from './jquants-client.js';
-import { CompanyResolver } from './resolver.js';
+
+function isSecuritiesCode(input: string): boolean {
+  return /^\d{4}$/.test(input);
+}
+
+function normalize4To5Digit(code4: string): string {
+  return `${code4}0`;
+}
 
 export const GET_STOCK_PRICE_DESCRIPTION = `
 日本株の株価データ（OHLCV）を取得します。4桁の銘柄コードと期間を指定してください。
@@ -68,8 +75,8 @@ export function createGetStockPrice(
     func: async ({ code, from, to }) => {
       try {
         // Normalize to 5-digit code
-        const code5 = CompanyResolver.isSecuritiesCode(code)
-          ? CompanyResolver.normalize4To5Digit(code)
+        const code5 = isSecuritiesCode(code)
+          ? normalize4To5Digit(code)
           : code;
 
         // Default date range: last 60 days

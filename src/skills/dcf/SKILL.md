@@ -81,10 +81,10 @@ Calculate 5-year FCF CAGR from cash flow history.
 
 **Use the `sector` from company facts** to select the appropriate base WACC range from [sector-wacc.md](sector-wacc.md).
 
-**Default assumptions:**
-- Risk-free rate: 4%
+**Default assumptions (Japanese market):**
+- Risk-free rate: ~1.0-1.5% (JGB 10-year yield)
 - Equity risk premium: 5-6%
-- Cost of debt: 5-6% pre-tax (~4% after-tax at 30% tax rate)
+- Cost of debt: 0.5-2.0% pre-tax (~0.4-1.4% after-tax at ~30% Japanese corporate tax rate)
 
 Calculate WACC using `debt_to_equity` for capital structure weights.
 
@@ -96,7 +96,7 @@ Calculate WACC using `debt_to_equity` for capital structure weights.
 
 **Years 1-5:** Apply growth rate with 5% annual decay (multiply growth rate by 0.95, 0.90, 0.85, 0.80 for years 2-5). This reflects competitive dynamics.
 
-**Terminal value:** Use Gordon Growth Model with 2.5% terminal growth (GDP proxy).
+**Terminal value:** Use Gordon Growth Model with 1.0-1.5% terminal growth (Japan nominal GDP growth proxy).
 
 ## Step 5: Calculate Present Value
 
@@ -104,7 +104,7 @@ Discount all FCFs → sum for Enterprise Value → subtract Net Debt → divide 
 
 ## Step 6: Sensitivity Analysis
 
-Create 3×3 matrix: WACC (base ±1%) vs terminal growth (2.0%, 2.5%, 3.0%).
+Create 3×3 matrix: WACC (base ±1%) vs terminal growth (0.5%, 1.0%, 1.5%).
 
 ## Step 7: Validate Results
 
@@ -117,9 +117,13 @@ Before presenting, verify these sanity checks:
    - If >90%, growth rate may be too high
    - If <40%, near-term projections may be aggressive
 
-3. **Per-share cross-check**: Compare to `free_cash_flow_per_share × 15-25` as rough sanity check
+3. **Per-share cross-check**: Compare to `free_cash_flow_per_share × 15-25` as rough sanity check (Japanese market PER: ~15x average; growth 20-30x, value 8-12x)
+
+4. **PBR sanity check**: Verify fair value implies PBR > 1.0x. If below 1.0x, flag TSE governance reform pressure as potential upside catalyst. Companies trading below PBR 1.0x face regulatory pressure to improve capital efficiency.
 
 If validation fails, reconsider assumptions before presenting results.
+
+**Note:** All monetary amounts should be expressed in JPY (millions). Discount rate references JGB yields, not US Treasury.
 
 ## Step 8: Output Format
 
@@ -127,5 +131,5 @@ Present a structured summary including:
 1. **Valuation Summary**: Current price vs. fair value, upside/downside percentage
 2. **Key Inputs Table**: All assumptions with their sources
 3. **Projected FCF Table**: 5-year projections with present values
-4. **Sensitivity Matrix**: 3×3 grid varying WACC (±1%) and terminal growth (2.0%, 2.5%, 3.0%)
+4. **Sensitivity Matrix**: 3×3 grid varying WACC (±1%) and terminal growth (0.5%, 1.0%, 1.5%)
 5. **Caveats**: Standard DCF limitations plus company-specific risks

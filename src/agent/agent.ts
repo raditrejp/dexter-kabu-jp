@@ -14,12 +14,14 @@ import { AgentToolExecutor } from './tool-executor.js';
 import { MemoryManager } from '../memory/index.js';
 import { runMemoryFlush, shouldRunMemoryFlush } from '../memory/flush.js';
 import { resolveProvider } from '../providers.js';
+import { Evaluator } from './evaluator.js';
 
 
 const DEFAULT_MODEL = 'gpt-5.4';
 const DEFAULT_MAX_ITERATIONS = 10;
 const MAX_OVERFLOW_RETRIES = 2;
 const OVERFLOW_KEEP_TOOL_USES = 3;
+const MAX_EVALUATOR_RETRIES = 2;
 
 /**
  * The core agent class that handles the agent loop and tool execution.
@@ -33,6 +35,7 @@ export class Agent {
   private readonly systemPrompt: string;
   private readonly signal?: AbortSignal;
   private readonly memoryEnabled: boolean;
+  private readonly evaluator: Evaluator;
 
   private constructor(
     config: AgentConfig,
@@ -47,6 +50,7 @@ export class Agent {
     this.systemPrompt = systemPrompt;
     this.signal = config.signal;
     this.memoryEnabled = config.memoryEnabled ?? true;
+    this.evaluator = new Evaluator(this.model);
   }
 
   /**
@@ -94,6 +98,7 @@ export class Agent {
 
     const ctx = createRunContext(query);
     const memoryFlushState = { alreadyFlushed: false };
+    let evaluatorRetries = 0;
 
     // Build initial prompt with conversation history context
     let currentPrompt = this.buildInitialPrompt(query, inMemoryHistory);
@@ -158,7 +163,37 @@ export class Agent {
 
       // No tool calls = final answer is in this response
       if (typeof response === 'string' || !hasToolCalls(response)) {
-        yield* this.handleDirectResponse(responseText ?? '', ctx);
+        const finalText = responseText ?? '';
+
+        // Run independent evaluator for analysis queries
+        if (Evaluator.shouldEvaluate(ctx.query) && evaluatorRetries < MAX_EVALUATOR_RETRIES) {
+          try {
+            const evalResult = await this.evaluator.evaluate(
+              ctx.query,
+              finalText,
+              ctx.scratchpad.getToolResults(),
+            );
+
+            if (!evalResult.pass) {
+              evaluatorRetries++;
+              // Append feedback and continue the agent loop for re-synthesis
+              currentPrompt = buildIterationPrompt(
+                ctx.query,
+                ctx.scratchpad.getToolResults(),
+                ctx.scratchpad.formatToolUsageForPrompt()
+                  + `\n\n【評価者フィードバック（再合成 ${evaluatorRetries}回目）】\n`
+                  + `スコア: データ充足=${evalResult.scores.dataSufficiency} 整合性=${evalResult.scores.consistency} 洞察=${evalResult.scores.insight} 行動指針=${evalResult.scores.actionability} (平均${evalResult.overall})\n`
+                  + `改善指示: ${evalResult.feedback}\n`
+                  + '上記フィードバックを踏まえて、分析レポートを改善してください。ツールの再実行は不要です。',
+              );
+              continue; // Re-enter agent loop
+            }
+          } catch {
+            // Evaluator failure should not block the user — pass through
+          }
+        }
+
+        yield* this.handleDirectResponse(finalText, ctx);
         return;
       }
 

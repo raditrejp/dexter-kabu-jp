@@ -288,7 +288,6 @@ MIT License. Originally forked from [virattt/dexter](https://github.com/virattt/
 ## 謝辞
 
 - [virattt/dexter](https://github.com/virattt/dexter) -- ベースとなったAIリサーチエージェント（GitHub 18,000+ stars）
-- [edinetdb/dexter-jp](https://github.com/edinetdb/dexter-jp) -- 日本株対応の参考実装（EDINET DB API + J-Quants）
 - [jpmorganchase/python-training](https://github.com/jpmorganchase/python-training) -- モンテカルロ・Altman Z''等の分析手法の参考
 - [ラジ株ナビ MCP](https://radikabunavi.com/mcp-service) -- EDINETベースの財務データ・スクリーナー
 - [J-Quants](https://jpx-jquants.com/) -- 東証公式株価データ

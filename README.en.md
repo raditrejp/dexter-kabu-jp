@@ -2,7 +2,7 @@
 
 Japanese stock analysis AI kit for Claude Code.
 
-> Built on [virattt/dexter](https://github.com/virattt/dexter) (18,000+ GitHub stars) and [edinetdb/dexter-jp](https://github.com/edinetdb/dexter-jp), with Claude Code integration, RadikabuNavi MCP, and 15 original analysis skills.
+> Built on [virattt/dexter](https://github.com/virattt/dexter) (18,000+ GitHub stars) and [edinetdb/dexter-jp](https://github.com/edinetdb/dexter-jp), incorporating Monte Carlo simulation and Altman Z'' from [JPMorgan Python Training](https://github.com/jpmorganchase/python-training). With Claude Code integration, RadikabuNavi MCP, and 15 original analysis skills.
 
 For detailed documentation, see the [Japanese README](README.md).
 

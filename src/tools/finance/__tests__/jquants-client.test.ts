@@ -6,15 +6,13 @@ import type { JQuantsPlan } from '../../../config/plan.js';
 
 const originalEnv = { ...process.env };
 
-function setEnv(mail: string, password: string, plan: JQuantsPlan = 'free') {
-  process.env.JQUANTS_MAIL = mail;
-  process.env.JQUANTS_PASSWORD = password;
+function setEnv(apiKey: string, plan: JQuantsPlan = 'free') {
+  process.env.JQUANTS_API_KEY = apiKey;
   process.env.JQUANTS_PLAN = plan;
 }
 
 function clearEnv() {
-  delete process.env.JQUANTS_MAIL;
-  delete process.env.JQUANTS_PASSWORD;
+  delete process.env.JQUANTS_API_KEY;
   delete process.env.JQUANTS_PLAN;
 }
 
@@ -25,22 +23,15 @@ describe('JQuantsClient constructor', () => {
     process.env = { ...originalEnv };
   });
 
-  test('constructs with valid env vars', () => {
-    setEnv('test@example.com', 'password123');
+  test('constructs with valid JQUANTS_API_KEY', () => {
+    setEnv('test-api-key-123');
     const client = new JQuantsClient('free');
     expect(client).toBeInstanceOf(JQuantsClient);
   });
 
-  test('throws when JQUANTS_MAIL is missing', () => {
-    process.env.JQUANTS_PASSWORD = 'password123';
-    delete process.env.JQUANTS_MAIL;
-    expect(() => new JQuantsClient('free')).toThrow('JQUANTS_MAIL');
-  });
-
-  test('throws when JQUANTS_PASSWORD is missing', () => {
-    process.env.JQUANTS_MAIL = 'test@example.com';
-    delete process.env.JQUANTS_PASSWORD;
-    expect(() => new JQuantsClient('free')).toThrow('JQUANTS_PASSWORD');
+  test('throws when JQUANTS_API_KEY is missing', () => {
+    clearEnv();
+    expect(() => new JQuantsClient('free')).toThrow('JQUANTS_API_KEY');
   });
 });
 
@@ -48,7 +39,7 @@ describe('JQuantsClient constructor', () => {
 
 describe('JQuantsClient.buildUrl', () => {
   beforeEach(() => {
-    setEnv('test@example.com', 'password123');
+    setEnv('test-api-key-123');
   });
 
   afterEach(() => {
@@ -57,36 +48,36 @@ describe('JQuantsClient.buildUrl', () => {
 
   test('builds URL with no params', () => {
     const client = new JQuantsClient('free');
-    const url = client.buildUrl('listed/info');
-    expect(url).toBe('https://api.jquants.com/v2/listed/info');
+    const url = client.buildUrl('equities/master');
+    expect(url).toBe('https://api.jquants.com/v2/equities/master');
   });
 
   test('builds URL with query params', () => {
     const client = new JQuantsClient('free');
-    const url = client.buildUrl('prices/daily_quotes', {
-      code: '7203',
+    const url = client.buildUrl('equities/bars/daily', {
+      code: '72030',
       from: '2024-01-01',
     });
     expect(url).toBe(
-      'https://api.jquants.com/v2/prices/daily_quotes?code=7203&from=2024-01-01',
+      'https://api.jquants.com/v2/equities/bars/daily?code=72030&from=2024-01-01',
     );
   });
 
   test('omits undefined param values', () => {
     const client = new JQuantsClient('free');
-    const url = client.buildUrl('prices/daily_quotes', {
-      code: '7203',
+    const url = client.buildUrl('equities/bars/daily', {
+      code: '72030',
       from: undefined,
     });
     expect(url).toBe(
-      'https://api.jquants.com/v2/prices/daily_quotes?code=7203',
+      'https://api.jquants.com/v2/equities/bars/daily?code=72030',
     );
   });
 
   test('handles empty params object', () => {
     const client = new JQuantsClient('free');
-    const url = client.buildUrl('listed/info', {});
-    expect(url).toBe('https://api.jquants.com/v2/listed/info');
+    const url = client.buildUrl('equities/master', {});
+    expect(url).toBe('https://api.jquants.com/v2/equities/master');
   });
 });
 
@@ -94,21 +85,21 @@ describe('JQuantsClient.buildUrl', () => {
 
 describe('JQuantsClient.isAvailable', () => {
   beforeEach(() => {
-    setEnv('test@example.com', 'password123');
+    setEnv('test-api-key-123');
   });
 
   afterEach(() => {
     process.env = { ...originalEnv };
   });
 
-  test('free plan has listed/info', () => {
+  test('free plan has equities/master', () => {
     const client = new JQuantsClient('free');
-    expect(client.isAvailable('listed/info')).toBe(true);
+    expect(client.isAvailable('equities/master')).toBe(true);
   });
 
-  test('free plan does NOT have markets/trades_spec', () => {
+  test('free plan does NOT have equities/investor-types', () => {
     const client = new JQuantsClient('free');
-    expect(client.isAvailable('markets/trades_spec')).toBe(false);
+    expect(client.isAvailable('equities/investor-types')).toBe(false);
   });
 
   test('premium plan has fins/dividend', () => {
@@ -121,7 +112,7 @@ describe('JQuantsClient.isAvailable', () => {
 
 describe('JQuantsClient.dataRangeWeeks', () => {
   beforeEach(() => {
-    setEnv('test@example.com', 'password123');
+    setEnv('test-api-key-123');
   });
 
   afterEach(() => {
@@ -149,23 +140,16 @@ describe('JQuantsClient.dataRangeWeeks', () => {
   });
 });
 
-// ── Token management (unit-level, no real API calls) ────────────────
+// ── API Key stored correctly ────────────────────────────────────────
 
-describe('JQuantsClient token state', () => {
-  beforeEach(() => {
-    setEnv('test@example.com', 'password123');
-  });
-
+describe('JQuantsClient API key', () => {
   afterEach(() => {
     process.env = { ...originalEnv };
   });
 
-  test('initially has no token', () => {
+  test('stores API key from environment', () => {
+    setEnv('my-secret-key');
     const client = new JQuantsClient('free');
-    // Access internal state through ensureToken — it should attempt auth
-    // We can't call ensureToken without mocking fetch, so just verify
-    // construction doesn't set a token.
-    expect((client as any).idToken).toBeUndefined();
-    expect((client as any).tokenExpiresAt).toBe(0);
+    expect((client as any).apiKey).toBe('my-secret-key');
   });
 });

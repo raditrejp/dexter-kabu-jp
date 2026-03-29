@@ -138,7 +138,7 @@ export function getToolRegistry(model: string): RegisteredTool[] {
   // ── Japanese Stock Finance Tools ─────────────────────────────────
 
   // JQuants API — stock price data
-  if (process.env.JQUANTS_MAIL) {
+  if (process.env.JQUANTS_API_KEY) {
     try {
       const jquantsPlan = (process.env.JQUANTS_PLAN as JQuantsPlan) ?? 'free';
       const jquantsClient = new JQuantsClient(jquantsPlan);
@@ -148,7 +148,7 @@ export function getToolRegistry(model: string): RegisteredTool[] {
         description: GET_STOCK_PRICE_DESCRIPTION,
       });
     } catch {
-      // JQuants client initialization failed (e.g., missing password) — skip
+      // JQuants client initialization failed — skip
     }
   }
 

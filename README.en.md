@@ -125,16 +125,6 @@ Dexter remembers past analyses. Analyzing the same stock again shows how signals
 | correlation | Cross-asset correlation, beta, regression statistics, idiosyncratic risk |
 | comprehensive-analysis | Auto-orchestrates all skills for full-spectrum stock analysis with integrated ISQ scoring |
 
-## JQuants Plan Comparison
-
-| Feature | Free | Light | Standard | Premium |
-|---------|:----:|:-----:|:--------:|:-------:|
-| Daily price data | 12 weeks | 2 years | Full | Full |
-| Financials | 2 years | 5 years | Full | Full |
-| Margin balance | - | - | Full | Full |
-| Institutional flows | - | - | Full | Full |
-| Short-sell ratio | - | - | - | Full |
-
 ## License
 
 MIT License. Originally forked from [virattt/dexter](https://github.com/virattt/dexter).

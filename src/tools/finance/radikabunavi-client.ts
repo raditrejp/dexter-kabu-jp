@@ -119,12 +119,21 @@ export class RadikabuNaviClient {
 
       clearTimeout(timeoutId);
 
+      // Check HTTP status before parsing
+      if (!response.ok) {
+        throw new Error(`MCP HTTP error ${response.status}: ${response.statusText}`);
+      }
+
       const sid = response.headers.get('mcp-session-id');
       if (sid) this.sessionId = sid;
 
       const text = await response.text();
 
-      const jsonMatch = text.match(/^data:\s*(.+)$/m) ?? text.match(/^(\{.+\})$/m);
+      // Handle SSE format — take the last data: line (skip notifications)
+      const dataLines = [...text.matchAll(/^data:\s*(.+)$/gm)];
+      const jsonMatch = dataLines.length > 0
+        ? dataLines[dataLines.length - 1]
+        : text.match(/^(\{.+\})$/m);
       if (!jsonMatch) {
         if (id === null) return { jsonrpc: '2.0', result: {}, id: null };
         throw new Error(`Unexpected MCP response: ${text.slice(0, 200)}`);

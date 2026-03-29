@@ -18,6 +18,20 @@ import { tradingviewAvailable, createGetTechnicalIndicators, GET_TECHNICAL_INDIC
 import { tdnetAvailable, createGetDisclosures, GET_DISCLOSURES_DESCRIPTION } from './finance/tdnet.js';
 import { RadikabuNaviClient } from './finance/radikabunavi-client.js';
 
+// Cache MCP client to avoid duplicate init handshakes across getToolRegistry() calls
+let cachedMcpClient: RadikabuNaviClient | null = null;
+function getMcpClient(): RadikabuNaviClient | null {
+  if (cachedMcpClient) return cachedMcpClient;
+  const key = process.env.RADIKABUNAVI_API_KEY;
+  if (!key) return null;
+  try {
+    cachedMcpClient = new RadikabuNaviClient(key);
+    return cachedMcpClient;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * A registered tool with its rich description for system prompt injection.
  */
@@ -149,9 +163,8 @@ export function getToolRegistry(model: string): RegisteredTool[] {
   }
 
   // ラジ株ナビ MCP — financials, screener (via EDINET data)
-  if (process.env.RADIKABUNAVI_API_KEY) {
-    try {
-      const mcpClient = new RadikabuNaviClient(process.env.RADIKABUNAVI_API_KEY);
+  const mcpClient = getMcpClient();
+  if (mcpClient) {
 
       tools.push(
         {
@@ -258,9 +271,6 @@ export function getToolRegistry(model: string): RegisteredTool[] {
 roe, operatingMargin, equityRatio, salesGrowth, netCash, fcf, dividendPerShare 等108指標`,
         },
       );
-    } catch {
-      // RadikabuNavi MCP client initialization failed — skip
-    }
   }
 
   // TradingView MCP — technical indicators (detection is sync; actual

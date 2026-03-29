@@ -20,7 +20,7 @@ interface ConfigStatus {
   jquantsConfigured: boolean;
   llmProvider: string | null;
   webSearch: string | null;
-  edinetConfigured: boolean;
+  radikabunaviConfigured: boolean;
   xSearchConfigured: boolean;
   lines: string[];
 }
@@ -89,7 +89,7 @@ export function getConfigStatus(): ConfigStatus {
   const llmProviders = findAllConfigured(LLM_PROVIDERS);
   const llmProvider = llmProviders.length > 0 ? llmProviders.join(', ') : null;
   const webSearch = findFirstConfigured(WEB_SEARCH_PROVIDERS);
-  const edinetConfigured = isSet('RADIKABUNAVI_API_KEY');
+  const radikabunaviConfigured = isSet('RADIKABUNAVI_API_KEY');
   const xSearchConfigured = isSet('X_BEARER_TOKEN');
 
   const ok = '\u2713';  // checkmark
@@ -111,7 +111,7 @@ export function getConfigStatus(): ConfigStatus {
   }
 
   // Optional data sources
-  lines.push(`  ${edinetConfigured ? ok : ng} EDINET財務データ: ${edinetConfigured ? '有効（ラジ株ナビ MCP — 財務・スクリーナー）' : '未設定 -- RADIKABUNAVI_API_KEY を .env に設定してください（https://radikabunavi.com/mcp-service）'}`);
+  lines.push(`  ${radikabunaviConfigured ? ok : ng} EDINET財務データ: ${radikabunaviConfigured ? '有効（ラジ株ナビ MCP — 財務・スクリーナー）' : '未設定 -- RADIKABUNAVI_API_KEY を .env に設定してください（https://radikabunavi.com/mcp-service）'}`);
   lines.push(`  ${webSearch ? ok : '-'} Web検索: ${webSearch ?? '未設定（任意）'}`);
   lines.push(`  ${xSearchConfigured ? ok : '-'} X検索: ${xSearchConfigured ? '有効' : '未設定（任意）'}`);
 
@@ -120,7 +120,7 @@ export function getConfigStatus(): ConfigStatus {
     jquantsConfigured,
     llmProvider,
     webSearch,
-    edinetConfigured,
+    radikabunaviConfigured,
     xSearchConfigured,
     lines,
   };

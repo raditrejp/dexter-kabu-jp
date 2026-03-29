@@ -7,3 +7,5 @@ export {
 } from './plan.js';
 
 export { RateLimiter } from './rate-limiter.js';
+
+export { getConfigStatus, formatConfigStatus } from './setup.js';

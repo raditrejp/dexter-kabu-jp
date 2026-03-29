@@ -11,7 +11,7 @@ For detailed documentation, see the [Japanese README](README.md).
 - **15 analysis skills**: SEPA, Dow Theory, Granville's Laws, supply-demand, DCF, Altman Z'' credit risk, Monte Carlo forecasting, correlation analysis, comprehensive analysis, and more
 - **ISQ Signal Framework**: Quantifies investment signals across 5 dimensions (confidence, intensity, expectation gap, timeliness, direction)
 - **Independent Evaluator**: AI-generated analysis is verified by a separate AI context across 4 quality axes (data sufficiency, consistency, insight, actionability)
-- **4 data sources**: JQuants API v2 + EDINET DB + TradingView MCP + TDnet MCP
+- **4 data sources**: JQuants API v2 + RadikabuNavi MCP + TradingView MCP + TDnet MCP
 - **Persistent memory**: Remembers past analyses and tracks signal changes over time
 
 ## Quick Start
@@ -20,7 +20,7 @@ For detailed documentation, see the [Japanese README](README.md).
 
 - [Bun](https://bun.sh/) (v1.0+)
 - [JQuants API](https://jpx-jquants.com/) account (free tier available)
-- [EDINET DB](https://edinetdb.jp/developers) API key (recommended, free) — required for financials, filings, screener, and Altman Z'' analysis
+- [RadikabuNavi MCP](https://radikabunavi.com/mcp-service) API key (recommended, free tier available) — EDINET-based financials and screener
 - At least one LLM API key (OpenAI / Anthropic / Google / Ollama)
 
 ### Install
@@ -35,7 +35,7 @@ bun install
 
 ```bash
 cp env.example .env
-# Edit .env — set JQUANTS_API_KEY, EDINETDB_API_KEY, and at least one LLM API key
+# Edit .env — set JQUANTS_API_KEY, RADIKABUNAVI_API_KEY, and at least one LLM API key
 ```
 
 ### Run
@@ -70,7 +70,7 @@ Dexter remembers past analyses. Analyzing the same stock again shows how signals
 | Source | What it provides | Required |
 |--------|-----------------|:--------:|
 | **JQuants API v2** | Price, financials, margin balance, sector flows | Yes (free tier) |
-| **EDINET DB** | Financials, filings, key ratios, screener | Recommended (free) |
+| **RadikabuNavi MCP** | EDINET-based financials, key ratios, screener | Recommended (free tier) |
 | **TradingView MCP** | Technical indicators (RSI, MACD, BB, etc.) | Optional |
 | **TDnet MCP** | Timely disclosure filings | Optional |
 
@@ -112,6 +112,6 @@ MIT License. Originally forked from [virattt/dexter](https://github.com/virattt/
 
 - [virattt/dexter](https://github.com/virattt/dexter) — The base AI research agent
 - [edinetdb/dexter-jp](https://github.com/edinetdb/dexter-jp) — Reference implementation for Japanese stocks
-- [EDINET DB](https://edinetdb.jp/) — Securities report data
+- [RadikabuNavi MCP](https://radikabunavi.com/mcp-service) — EDINET-based financials and screener
 - [J-Quants](https://jpx-jquants.com/) — Official TSE market data
 - [tdnet-disclosure-mcp](https://github.com/ajtgjmdjp/tdnet-disclosure-mcp) — Timely disclosure MCP server

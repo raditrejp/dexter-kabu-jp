@@ -1,8 +1,8 @@
 # dexter-kabu-jp
 
-Autonomous AI research agent for Japanese stocks.
+Japanese stock analysis AI kit for Claude Code.
 
-> A fork of [virattt/dexter](https://github.com/virattt/dexter), purpose-built for Japanese equity analysis with local data sources and market-specific analytical frameworks.
+> Built on [virattt/dexter](https://github.com/virattt/dexter) (18,000+ GitHub stars) and [edinetdb/dexter-jp](https://github.com/edinetdb/dexter-jp), with Claude Code integration, RadikabuNavi MCP, and 15 original analysis skills.
 
 For detailed documentation, see the [Japanese README](README.md).
 
@@ -131,7 +131,8 @@ MIT License. Originally forked from [virattt/dexter](https://github.com/virattt/
 
 ## Acknowledgements
 
-- [virattt/dexter](https://github.com/virattt/dexter) — The base AI research agent
+- [virattt/dexter](https://github.com/virattt/dexter) — The base AI research agent (18,000+ GitHub stars)
+- [edinetdb/dexter-jp](https://github.com/edinetdb/dexter-jp) — Japanese stock adaptation (EDINET DB API + J-Quants)
 - [RadikabuNavi MCP](https://radikabunavi.com/mcp-service) — EDINET-based financials and screener
 - [J-Quants](https://jpx-jquants.com/) — Official TSE market data
 - [tdnet-disclosure-mcp](https://github.com/ajtgjmdjp/tdnet-disclosure-mcp) — Timely disclosure MCP server

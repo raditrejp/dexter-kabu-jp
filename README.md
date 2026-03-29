@@ -1,10 +1,10 @@
 # dexter-kabu-jp
 
-日本株の自律型リサーチAIエージェント
+Claude Codeで使える日本株分析AIキット
 
-> [virattt/dexter](https://github.com/virattt/dexter) をベースに、日本株専用の分析環境を構築したフォーク版です。
+> GitHub 18,000+ starsの金融AIエージェント [virattt/dexter](https://github.com/virattt/dexter) と、その日本株対応版 [edinetdb/dexter-jp](https://github.com/edinetdb/dexter-jp) をベースに、Claude Code統合・ラジ株ナビMCP連携・独自分析スキルを追加した拡張版です。
 
-複雑な投資リサーチを自動で分解・実行・検証します。銘柄コードを渡すだけで、ファンダメンタル・テクニカル・需給の多角的な分析レポートを生成します。
+「トヨタを分析して」と聞くだけで、DCF・モンテカルロ・Altman Z''・SEPA・需給分析など15のスキルが全自動で走ります。約3,800社の財務データとスクリーニングに対応。
 
 ## 特徴
 
@@ -287,7 +287,8 @@ MIT License. Originally forked from [virattt/dexter](https://github.com/virattt/
 
 ## 謝辞
 
-- [virattt/dexter](https://github.com/virattt/dexter) -- ベースとなったAIリサーチエージェント
+- [virattt/dexter](https://github.com/virattt/dexter) -- ベースとなったAIリサーチエージェント（GitHub 18,000+ stars）
+- [edinetdb/dexter-jp](https://github.com/edinetdb/dexter-jp) -- 日本株対応の参考実装（EDINET DB API + J-Quants）
 - [ラジ株ナビ MCP](https://radikabunavi.com/mcp-service) -- EDINETベースの財務データ・スクリーナー
 - [J-Quants](https://jpx-jquants.com/) -- 東証公式株価データ
 - [tdnet-disclosure-mcp](https://github.com/ajtgjmdjp/tdnet-disclosure-mcp) -- 適時開示MCPサーバー

@@ -14,6 +14,35 @@ For detailed documentation, see the [Japanese README](README.md).
 - **4 data sources**: JQuants API v2 + RadikabuNavi MCP + TradingView MCP + TDnet MCP
 - **Persistent memory**: Remembers past analyses and tracks signal changes over time
 
+## Use with Claude Code (Recommended)
+
+If you have Claude Code, this is the easiest way to get started. No LLM API key needed.
+
+### Setup
+
+```bash
+git clone https://github.com/raditrejp/dexter-kabu-jp.git
+cd dexter-kabu-jp
+claude
+```
+
+On first launch, the AI will guide you through API key setup:
+1. **JQuants API key** (free) — for stock price data
+2. **RadikabuNavi API key** (free tier available) — for financial data
+
+### Usage
+
+```
+> Analyze Toyota
+→ Auto-runs DCF + Altman Z'' + SEPA + Dow Theory + Granville + supply-demand + Monte Carlo + correlation
+
+> Find stocks with ROE >= 15% and dividend yield >= 3%
+→ Screen ~3,800 companies
+
+> Run DCF analysis on 7203
+→ 3-scenario (conservative/base/optimistic) fair value calculation
+```
+
 ## Quick Start
 
 ### Prerequisites

@@ -14,6 +14,35 @@
 - **4つのデータソース**: JQuants API v2 + ラジ株ナビ MCP + TradingView MCP + TDnet MCP
 - **永続メモリ**: 過去の分析を記憶し、シグナルの変化を追跡
 
+## Claude Codeで使う（推奨）
+
+Claude Codeをお持ちの場合、最も簡単に使えます。LLM APIキーは不要です。
+
+### セットアップ
+
+```bash
+git clone https://github.com/raditrejp/dexter-kabu-jp.git
+cd dexter-kabu-jp
+claude
+```
+
+初回起動時にAIが案内に従ってAPIキーの設定を行います:
+1. **JQuants APIキー**（無料）— 株価データ用
+2. **ラジ株ナビ APIキー**（無料プランあり）— 財務データ用
+
+### 使い方
+
+```
+> トヨタを分析して
+→ DCF + Altman Z'' + SEPA + ダウ理論 + グランビル + 需給 + モンテカルロ + 相関を自動実行
+
+> ROE15%以上で配当利回り3%以上の銘柄を探して
+→ 約3,800社からスクリーニング
+
+> 7203のDCF分析して
+→ 3シナリオ（保守・ベース・楽観）で理論株価を算出
+```
+
 ## クイックスタート
 
 ### 前提条件

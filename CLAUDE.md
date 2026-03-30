@@ -7,7 +7,7 @@
 
 以下のAPIキーが未設定の場合、ユーザーに案内を出して入力を求め、`.env` に保存してください。
 
-### 1. JQuants APIキー（必須・無料）
+### 1. JQuants APIキー（必須・無料プランあり）
 
 - https://jpx-jquants.com/ で無料アカウント作成
 - ダッシュボード（https://jpx-jquants.com/ja/dashboard/api-keys）でAPIキーを発行

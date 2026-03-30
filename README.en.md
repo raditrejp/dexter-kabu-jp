@@ -27,7 +27,7 @@ claude
 ```
 
 On first launch, the AI will guide you through API key setup:
-1. **JQuants API key** (free) — for stock price data
+1. **JQuants API key** (free tier available) — for stock price data
 2. **RadikabuNavi API key** (free tier available) — for financial data
 
 ### Usage

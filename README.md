@@ -4,7 +4,7 @@ Claude Codeで使える日本株分析AIキット
 
 > GitHub 18,000+ starsの金融AIエージェント [virattt/dexter](https://github.com/virattt/dexter) をベースに、[JPMorgan Python Training](https://github.com/jpmorganchase/python-training) のモンテカルロ法・Altman Z''等の分析手法を導入。Claude Code統合・ラジ株ナビMCP連携・独自分析スキルを追加した日本株対応拡張版です。
 
-「トヨタを分析して」と聞くだけで、DCF・モンテカルロ・Altman Z''・PEGレシオ・ネットネット株判定・CFパターン分析・SEPA・需給分析など15のスキルが全自動で走ります。約3,800社の財務データとスクリーニングに対応。
+「トヨタを分析して」と聞くだけで、DCF・モンテカルロ・Altman Z''・PEGレシオ・ネットネット株判定・SEPA・需給分析など15のスキルが全自動で走ります。約3,800社の財務データとスクリーニングに対応。
 
 ## 特徴
 

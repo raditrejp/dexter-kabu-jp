@@ -34,7 +34,7 @@ On first launch, the AI will guide you through API key setup:
 
 ```
 > Analyze Toyota
-→ Auto-runs DCF + Altman Z'' + SEPA + Dow Theory + Granville + supply-demand + Monte Carlo + correlation
+→ Auto-runs DCF + Altman Z'' + PEG ratio + net-net + CF pattern + SEPA + Dow Theory + Granville + supply-demand + Monte Carlo + correlation
 
 > Find stocks with ROE >= 15% and dividend yield >= 3%
 → Screen ~3,800 companies

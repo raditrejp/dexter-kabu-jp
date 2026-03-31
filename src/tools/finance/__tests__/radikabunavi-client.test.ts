@@ -85,7 +85,7 @@ describe('RadikabuNaviClient', () => {
       ]);
 
       const client = new RadikabuNaviClient('rk_test');
-      expect(client.initialize()).rejects.toThrow('MCP HTTP error 401');
+      expect(client.initialize()).rejects.toThrow('ラジ株ナビMCPエラー（ステータス: 401）');
     });
 
     test('SSE with multiple data lines takes the last one', async () => {

@@ -275,6 +275,9 @@ export const browserTool = new DynamicStructuredTool({
           if (!url) {
             return formatToolResult({ error: 'url is required for navigate action' });
           }
+          // SSRF protection: block private/reserved IP ranges
+          const { assertSafeUrl } = await import('../../utils/url-guard.js');
+          assertSafeUrl(url);
           const p = await ensureBrowser();
           // Use networkidle for better JS rendering on dynamic sites
           await p.goto(url, { timeout: 30000, waitUntil: 'networkidle' });
@@ -290,6 +293,9 @@ export const browserTool = new DynamicStructuredTool({
           if (!url) {
             return formatToolResult({ error: 'url is required for open action' });
           }
+          // SSRF protection
+          const { assertSafeUrl: assertSafeUrlOpen } = await import('../../utils/url-guard.js');
+          assertSafeUrlOpen(url);
           const currentPage = await ensureBrowser();
           const context = currentPage.context();
           const newPage = await context.newPage();

@@ -35,6 +35,10 @@ export class RadikabuNaviClient {
         'RADIKABUNAVI_API_KEY is required. Get yours at https://radikabunavi.com/mcp-service',
       );
     }
+    // Reject control characters to prevent HTTP header injection (CRLF)
+    if (/[\r\n\x00]/.test(apiKey)) {
+      throw new Error('RADIKABUNAVI_API_KEY contains invalid characters.');
+    }
     this.apiKey = apiKey;
   }
 
@@ -121,7 +125,7 @@ export class RadikabuNaviClient {
 
       // Check HTTP status before parsing
       if (!response.ok) {
-        throw new Error(`MCP HTTP error ${response.status}: ${response.statusText}`);
+        throw new Error(`ラジ株ナビMCPエラー（ステータス: ${response.status}）`);
       }
 
       const sid = response.headers.get('mcp-session-id');

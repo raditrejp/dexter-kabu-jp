@@ -62,13 +62,16 @@ export function createGetStockPrice(
     schema: z.object({
       code: z
         .string()
+        .regex(/^\d{4,5}$/, '証券コードは4桁または5桁の数字')
         .describe('4桁の銘柄コード（例: "7203"）'),
       from: z
         .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, '日付はYYYY-MM-DD形式')
         .optional()
         .describe('取得開始日（YYYY-MM-DD）。省略時は60日前から'),
       to: z
         .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, '日付はYYYY-MM-DD形式')
         .optional()
         .describe('取得終了日（YYYY-MM-DD）。省略時は今日まで'),
     }),
@@ -119,9 +122,8 @@ export function createGetStockPrice(
           })),
         });
       } catch (error: unknown) {
-        const message =
-          error instanceof Error ? error.message : String(error);
-        return JSON.stringify({ error: message });
+        const { safeErrorMessage } = await import('../../utils/safe-error.js');
+        return JSON.stringify({ error: safeErrorMessage(error) });
       }
     },
   });

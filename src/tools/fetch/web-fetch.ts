@@ -245,6 +245,10 @@ async function fetchWithRedirects(params: {
       throw new Error("[Web Fetch] Invalid URL: must be http or https");
     }
 
+    // SSRF protection: block private/reserved IP ranges
+    const { assertSafeUrl } = await import('../utils/url-guard.js');
+    assertSafeUrl(currentUrl);
+
     const response = await fetch(parsedUrl.toString(), {
       redirect: "manual",
       headers: params.headers,

@@ -35,6 +35,10 @@ export class JQuantsClient {
         'JQUANTS_API_KEY environment variable is required. Get your API Key from https://jpx-jquants.com/ja/dashboard/api-keys',
       );
     }
+    // Reject control characters to prevent HTTP header injection (CRLF)
+    if (/[\r\n\x00]/.test(apiKey)) {
+      throw new Error('JQUANTS_API_KEY contains invalid characters.');
+    }
 
     this.apiKey = apiKey;
     this.plan = plan;
@@ -102,7 +106,7 @@ export class JQuantsClient {
     if (response.status === 429) {
       if (retryCount >= MAX_RETRIES) {
         throw new Error(
-          `JQuants API rate limit exceeded after ${MAX_RETRIES} retries: ${url}`,
+          'JQuants APIのレート制限に達しました。しばらく待ってからお試しください。',
         );
       }
       const backoffMs = BACKOFF_BASE_MS * Math.pow(2, retryCount);
@@ -111,10 +115,11 @@ export class JQuantsClient {
     }
 
     if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      throw new Error(
-        `JQuants API error ${response.status}: ${response.statusText} — ${body}`,
-      );
+      // Do not expose response body — may contain internal API details
+      if (response.status === 401 || response.status === 403) {
+        throw new Error('JQuants API認証エラーです。JQUANTS_API_KEYを確認してください。');
+      }
+      throw new Error(`JQuants APIエラー（ステータス: ${response.status}）`);
     }
 
     return (await response.json()) as T;

@@ -17,6 +17,7 @@ import { createGetStockPrice, GET_STOCK_PRICE_DESCRIPTION } from './finance/stoc
 import { tradingviewAvailable, createGetTechnicalIndicators, GET_TECHNICAL_INDICATORS_DESCRIPTION } from './finance/tradingview.js';
 import { tdnetAvailable, createGetDisclosures, GET_DISCLOSURES_DESCRIPTION } from './finance/tdnet.js';
 import { RadikabuNaviClient } from './finance/radikabunavi-client.js';
+import { safeErrorMessage } from '../utils/safe-error.js';
 
 // Cache MCP client to avoid duplicate init handshakes across getToolRegistry() calls
 let cachedMcpClient: RadikabuNaviClient | null = null;
@@ -184,7 +185,7 @@ export function getToolRegistry(model: string): RegisteredTool[] {
                 if (fiscalYear) args.fiscalYear = fiscalYear;
                 return await mcpClient.callTool('get_edinet_financial_data', args);
               } catch (error: unknown) {
-                return JSON.stringify({ error: error instanceof Error ? error.message : String(error) });
+                return JSON.stringify({ error: safeErrorMessage(error) });
               }
             },
           }),
@@ -211,7 +212,7 @@ export function getToolRegistry(model: string): RegisteredTool[] {
               try {
                 return await mcpClient.callTool('get_edinet_financial_summary', { code });
               } catch (error: unknown) {
-                return JSON.stringify({ error: error instanceof Error ? error.message : String(error) });
+                return JSON.stringify({ error: safeErrorMessage(error) });
               }
             },
           }),
@@ -253,7 +254,7 @@ export function getToolRegistry(model: string): RegisteredTool[] {
                 if (market) args.market = market;
                 return await mcpClient.callTool('screen_stocks', args);
               } catch (error: unknown) {
-                return JSON.stringify({ error: error instanceof Error ? error.message : String(error) });
+                return JSON.stringify({ error: safeErrorMessage(error) });
               }
             },
           }),

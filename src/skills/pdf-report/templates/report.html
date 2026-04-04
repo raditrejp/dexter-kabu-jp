@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>日本株分析レポート — トヨタ自動車（7203）</title>
+  <title>日本株分析レポート — {{companyName}}（{{code}}）</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* ===== リセット & ベース ===== */
@@ -496,7 +496,6 @@
       html, body {
         background: white;
       }
-
       .page {
         margin: 0;
         box-shadow: none;
@@ -519,21 +518,21 @@
   <!-- ヘッダー -->
   <header class="page-header">
     <div class="header-brand">
-      <span class="ticker">東証プライム｜7203｜輸送用機器</span>
-      <span class="company-name">トヨタ自動車</span>
+      <span class="ticker">{{market}}｜{{code}}｜{{sector}}</span>
+      <span class="company-name">{{companyName}}</span>
     </div>
     <div class="header-meta">
       <div class="meta-item">
         <span class="label">分析日</span>
-        <span class="value">2026-04-04</span>
+        <span class="value">{{analysisDate}}</span>
       </div>
       <div class="meta-item">
         <span class="label">時価総額</span>
-        <span class="value">41.2兆円</span>
+        <span class="value">{{marketCap}}</span>
       </div>
       <div class="meta-item">
         <span class="label">株価（現在値）</span>
-        <span class="value price">2,530 円</span>
+        <span class="value price">{{price}}</span>
       </div>
     </div>
   </header>
@@ -548,7 +547,7 @@
       <div class="chart-legend">
         <div class="legend-item">
           <div class="legend-dot company"></div>
-          トヨタ自動車
+          {{companyName}}
         </div>
         <div class="legend-item">
           <div class="legend-dot industry"></div>
@@ -560,105 +559,14 @@
     <!-- 総合コメント -->
     <div class="comment-wrap">
       <div class="chart-title">総合評価コメント</div>
-      <div class="verdict-badge">やや強気</div>
-
-      <p class="comment-text">
-        トヨタ自動車は<strong>稼ぐ力（ROE 18.2%）</strong>と<strong>安全性（自己資本比率 52%）</strong>で業界を大きく上回る。DCFベースの理論株価は<strong>2,850円</strong>（現在比 +12.6%）と割安圏にあり、上昇余地が残る。一方で<strong>成長性は業界平均を下回り</strong>、EV転換期の設備投資負担が重くEPS成長が鈍化。還元力は連続増配・自社株買いで高水準を維持。総合的には<strong>やや強気</strong>だが、成長性の回復が本格的な再評価のカギとなる。
-      </p>
-
-      <div class="comment-highlights">
-        <div class="highlight-row">
-          <span class="highlight-tag positive">強み</span>
-          <span class="highlight-text">稼ぐ力・安全性・割安度が業界平均を大幅上回る</span>
-        </div>
-        <div class="highlight-row">
-          <span class="highlight-tag neutral">注目</span>
-          <span class="highlight-text">トレンド・需給は良好、モメンタム継続中</span>
-        </div>
-        <div class="highlight-row">
-          <span class="highlight-tag negative">懸念</span>
-          <span class="highlight-text">成長性がEV転換コストで業界平均を下回る</span>
-        </div>
-      </div>
+      {{summaryComment}}
     </div>
   </div>
 
   <!-- 8軸スコアカード -->
   <div class="section-title">8軸スコア一覧</div>
-  <div class="score-cards">
-
-    <div class="score-card">
-      <span class="axis-label">割安度</span>
-      <span class="score-num above">72</span>
-      <div class="score-bar-bg">
-        <div class="score-bar-fill above" style="width:72%"></div>
-      </div>
-      <span class="avg-label">業界平均 50</span>
-    </div>
-
-    <div class="score-card">
-      <span class="axis-label">稼ぐ力</span>
-      <span class="score-num above">85</span>
-      <div class="score-bar-bg">
-        <div class="score-bar-fill above" style="width:85%"></div>
-      </div>
-      <span class="avg-label">業界平均 60</span>
-    </div>
-
-    <div class="score-card">
-      <span class="axis-label">成長性</span>
-      <span class="score-num below">45</span>
-      <div class="score-bar-bg">
-        <div class="score-bar-fill below" style="width:45%"></div>
-      </div>
-      <span class="avg-label">業界平均 55</span>
-    </div>
-
-    <div class="score-card">
-      <span class="axis-label">安全性</span>
-      <span class="score-num above">78</span>
-      <div class="score-bar-bg">
-        <div class="score-bar-fill above" style="width:78%"></div>
-      </div>
-      <span class="avg-label">業界平均 65</span>
-    </div>
-
-    <div class="score-card">
-      <span class="axis-label">トレンド</span>
-      <span class="score-num above">68</span>
-      <div class="score-bar-bg">
-        <div class="score-bar-fill above" style="width:68%"></div>
-      </div>
-      <span class="avg-label">業界平均 50</span>
-    </div>
-
-    <div class="score-card">
-      <span class="axis-label">需給</span>
-      <span class="score-num above">62</span>
-      <div class="score-bar-bg">
-        <div class="score-bar-fill above" style="width:62%"></div>
-      </div>
-      <span class="avg-label">業界平均 50</span>
-    </div>
-
-    <div class="score-card">
-      <span class="axis-label">還元力</span>
-      <span class="score-num above">75</span>
-      <div class="score-bar-bg">
-        <div class="score-bar-fill above" style="width:75%"></div>
-      </div>
-      <span class="avg-label">業界平均 55</span>
-    </div>
-
-    <div class="score-card">
-      <span class="axis-label">事業独占力</span>
-      <span class="score-num above">70</span>
-      <div class="score-bar-bg">
-        <div class="score-bar-fill above" style="width:70%"></div>
-      </div>
-      <span class="avg-label">業界平均 55</span>
-    </div>
-
+  <div id="scoreCards" class="score-cards">
+    <!-- score cards are rendered by JS from scoresJson / industryAvgJson -->
   </div>
 
   <!-- 各軸の詳細スコアと根拠 -->
@@ -666,140 +574,7 @@
   <div class="section-title" style="margin-top:0;">各軸の詳細スコアと根拠</div>
 
   <div class="detail-grid">
-
-    <!-- 割安度 -->
-    <div class="detail-card">
-      <div class="detail-card-header">
-        <span class="detail-axis-name">割安度</span>
-        <span class="detail-score-badge above">72 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
-      </div>
-      <div class="detail-progress-bg">
-        <div class="detail-progress-fill above" style="width:72%"></div>
-        <div class="detail-avg-marker" style="left:50%"></div>
-      </div>
-      <div class="detail-evidence">
-        <strong>DCF理論株価 2,850円</strong>（現在比 <strong style="color:var(--blue-600)">+12.6%</strong> の上昇余地）。<br>
-        PER <strong>15倍</strong>（業界平均 20倍 → 割安）、PBR <strong>1.2倍</strong>（前年 1.4倍 → 改善）。<br>
-        バリュエーション面で業界平均を大きく上回り、安全域が確保されている。
-      </div>
-    </div>
-
-    <!-- 稼ぐ力 -->
-    <div class="detail-card">
-      <div class="detail-card-header">
-        <span class="detail-axis-name">稼ぐ力</span>
-        <span class="detail-score-badge above">85 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
-      </div>
-      <div class="detail-progress-bg">
-        <div class="detail-progress-fill above" style="width:85%"></div>
-        <div class="detail-avg-marker" style="left:60%"></div>
-      </div>
-      <div class="detail-evidence">
-        <strong>ROE 18.2%</strong>（業界平均 12.5% → <strong style="color:var(--blue-600)">大幅上回る</strong>）。<br>
-        営業利益率 <strong>9.8%</strong>（前年 8.5% → 改善）、収益の質・持続性ともに高水準。<br>
-        トヨタ生産方式による原価低減が収益性を構造的に底上げしている。
-      </div>
-    </div>
-
-    <!-- 成長性 -->
-    <div class="detail-card">
-      <div class="detail-card-header">
-        <span class="detail-axis-name">成長性</span>
-        <span class="detail-score-badge below">45 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
-      </div>
-      <div class="detail-progress-bg">
-        <div class="detail-progress-fill below" style="width:45%"></div>
-        <div class="detail-avg-marker" style="left:55%"></div>
-      </div>
-      <div class="detail-evidence">
-        売上成長率 <strong>3.2%</strong>（業界平均 5.8% → <strong style="color:var(--red-600)">下回る</strong>）。<br>
-        EPS成長率 <strong>2.1%</strong>（前年 8.5% → 鈍化）。EV転換期の設備投資増が重荷。<br>
-        BEVラインナップ拡充の進捗が成長性回復のカギ。
-      </div>
-    </div>
-
-    <!-- 安全性 -->
-    <div class="detail-card">
-      <div class="detail-card-header">
-        <span class="detail-axis-name">安全性</span>
-        <span class="detail-score-badge above">78 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
-      </div>
-      <div class="detail-progress-bg">
-        <div class="detail-progress-fill above" style="width:78%"></div>
-        <div class="detail-avg-marker" style="left:65%"></div>
-      </div>
-      <div class="detail-evidence">
-        <strong>Altman Z'' スコア 3.2</strong>（安全圏: ≥2.6）、倒産リスクは極めて低い。<br>
-        自己資本比率 <strong>52%</strong>（前年 50% → 改善）、財務基盤が強固。<br>
-        大規模な手元流動性と多様な資金調達手段で財務的柔軟性を確保。
-      </div>
-    </div>
-
-    <!-- トレンド -->
-    <div class="detail-card">
-      <div class="detail-card-header">
-        <span class="detail-axis-name">トレンド</span>
-        <span class="detail-score-badge above">68 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
-      </div>
-      <div class="detail-progress-bg">
-        <div class="detail-progress-fill above" style="width:68%"></div>
-        <div class="detail-avg-marker" style="left:50%"></div>
-      </div>
-      <div class="detail-evidence">
-        <strong>SEPA: S2（上昇初期）</strong>、ダウ理論: 上昇トレンド継続。<br>
-        グランビル法則: <strong>B2（押し目買い）</strong> シグナル発生中。<br>
-        SMA50 がSMA200を上回りゴールデンクロス維持、中期上昇バイアス。
-      </div>
-    </div>
-
-    <!-- 需給 -->
-    <div class="detail-card">
-      <div class="detail-card-header">
-        <span class="detail-axis-name">需給</span>
-        <span class="detail-score-badge above">62 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
-      </div>
-      <div class="detail-progress-bg">
-        <div class="detail-progress-fill above" style="width:62%"></div>
-        <div class="detail-avg-marker" style="left:50%"></div>
-      </div>
-      <div class="detail-evidence">
-        信用倍率 <strong>3.1倍</strong>（良好ゾーン、過熱感なし）。<br>
-        出来高20日平均比 <strong>+15%</strong>（買い圧力の増加を示唆）。<br>
-        外国人投資家の継続的な買い越しが観測され、需給は底堅い。
-      </div>
-    </div>
-
-    <!-- 還元力 -->
-    <div class="detail-card">
-      <div class="detail-card-header">
-        <span class="detail-axis-name">還元力</span>
-        <span class="detail-score-badge above">75 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
-      </div>
-      <div class="detail-progress-bg">
-        <div class="detail-progress-fill above" style="width:75%"></div>
-        <div class="detail-avg-marker" style="left:55%"></div>
-      </div>
-      <div class="detail-evidence">
-        配当利回り <strong>2.8%</strong>、増配率トレンド: 年平均 <strong>+8%（加速傾向）</strong>、配当性向 <strong>32%</strong>（余裕あり）。
-        自社株買いを継続実施し、総還元利回りは業界平均を大幅に上回る。過去10年以上の増配継続実績を持ち、株主還元の信頼性が高い。
-      </div>
-    </div>
-
-    <!-- 事業独占力 -->
-    <div class="detail-card">
-      <div class="detail-card-header">
-        <span class="detail-axis-name">事業独占力</span>
-        <span class="detail-score-badge above">70 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
-      </div>
-      <div class="detail-progress-bg">
-        <div class="detail-progress-fill above" style="width:70%"></div>
-        <div class="detail-avg-marker" style="left:55%"></div>
-      </div>
-      <div class="detail-evidence">
-        営業利益率σ: <strong>1.8%</strong>（過去10年で安定）。ROEσ: <strong>2.3%</strong>（安定）。FCFマージンσ: <strong>3.1%</strong>（やや変動）。営業利益率水準: <strong>10.0%</strong>（良好）。
-      </div>
-    </div>
-
+    {{detailCards}}
   </div>
 
   <!-- 横棒グラフ: 業界平均との差 -->
@@ -820,7 +595,7 @@
         <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#7096F8" stroke-width="1.5" stroke-dasharray="4,2"/></svg>
         SMA50
       </div>
-      <div class="legend-item">
+      <div class="legend-item" id="sma200Legend">
         <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#999999" stroke-width="1.5" stroke-dasharray="4,2"/></svg>
         SMA200
       </div>
@@ -837,15 +612,7 @@
   <div class="risk-section">
     <div class="risk-title">主なリスク</div>
     <ul class="risk-list">
-      <li>
-        <strong>EV転換コストの長期化リスク:</strong> グローバルBEV競争の激化により、HEV依存の現行モデルミックスが競争優位を損なう可能性がある。特に中国市場でのBYD等との競合が激化しており、シェア維持に多額の投資が必要となる見込み。
-      </li>
-      <li>
-        <strong>為替リスク（円高）:</strong> 輸出比率の高さから、円高局面では業績への影響が大きい。1円の円高で約400億円の営業利益への影響があると試算される。日銀の金融政策の方向性によっては急速な円高が生じるリスクがある。
-      </li>
-      <li>
-        <strong>地政学リスク・貿易政策:</strong> 米国・欧州での関税政策変更や通商摩擦の激化が収益を圧迫するリスク。特に米国市場向け輸出車への追加関税が発動された場合、コスト構造に大きな影響が及ぶ可能性がある。
-      </li>
+      {{risksHtml}}
     </ul>
   </div>
 
@@ -864,7 +631,7 @@
       データソース: ラジ株ナビ EDINET財務データ / JQuants API v2 / TDnet 適時開示<br>
       <strong>免責事項:</strong> 本レポートは情報提供を目的とし、投資勧誘を意図するものではありません。記載された情報の正確性・完全性を保証するものではなく、投資判断はご自身の責任においてお願いします。
     </div>
-    <div class="footer-right">更新日: 2026-04-04</div>
+    <div class="footer-right">更新日: {{analysisDate}}</div>
   </footer>
 
 </div><!-- /page1 -->
@@ -883,13 +650,46 @@ const COLOR_GRAY_200  = '#CCCCCC';
 const COLOR_RED_600   = '#FE3939';
 const COLOR_RED_200   = '#FFBBBB';
 
+// ===== データ（プレースホルダーから注入） =====
+const scores = {{scoresJson}};
+const industryAvg = {{industryAvgJson}};
+const priceData = {{priceDataJson}};
+const hasSma200 = {{hasSma200}};
+
+// ===== スコアカードの動的レンダリング =====
+(function() {
+  const axisKeys = Object.keys(scores);
+  const container = document.getElementById('scoreCards');
+  container.innerHTML = axisKeys.map(function(axis) {
+    const score = scores[axis];
+    const avg = industryAvg[axis] || 50;
+    const cls = score >= avg ? 'above' : 'below';
+    return '<div class="score-card">' +
+      '<span class="axis-label">' + axis + '</span>' +
+      '<span class="score-num ' + cls + '">' + score + '</span>' +
+      '<div class="score-bar-bg">' +
+        '<div class="score-bar-fill ' + cls + '" style="width:' + score + '%"></div>' +
+      '</div>' +
+      '<span class="avg-label">業界平均 ' + avg + '</span>' +
+    '</div>';
+  }).join('');
+})();
+
+// ===== SMA200凡例の表示制御 =====
+(function() {
+  if (hasSma200 !== 'true') {
+    var legend = document.getElementById('sma200Legend');
+    if (legend) legend.style.display = 'none';
+  }
+})();
+
 // ===== 1ページ: レーダーチャート =====
 (function() {
   const ctx = document.getElementById('radarChart').getContext('2d');
 
-  const labels = ['割安度', '稼ぐ力', '成長性', '安全性', 'トレンド', '需給', '還元力', '事業独占力'];
-  const company  = [72, 85, 45, 78, 68, 62, 75, 70];
-  const industry = [50, 60, 55, 65, 50, 50, 55, 55];
+  const labels = Object.keys(scores);
+  const company  = Object.values(scores);
+  const industry = labels.map(function(k) { return industryAvg[k] || 50; });
 
   new Chart(ctx, {
     type: 'radar',
@@ -897,7 +697,7 @@ const COLOR_RED_200   = '#FFBBBB';
       labels,
       datasets: [
         {
-          label: 'トヨタ自動車',
+          label: document.querySelector('.company-name') ? document.querySelector('.company-name').textContent.trim() : '自社',
           data: company,
           backgroundColor: 'rgba(52, 96, 251, 0.18)',
           borderColor: COLOR_BLUE_600,
@@ -961,15 +761,14 @@ const COLOR_RED_200   = '#FFBBBB';
 })();
 
 
-// ===== 2ページ: 横棒グラフ（差分） =====
+// ===== 横棒グラフ（差分） =====
 (function() {
   const ctx = document.getElementById('barChart').getContext('2d');
 
-  const labels = ['割安度', '稼ぐ力', '成長性', '安全性', 'トレンド', '需給', '還元力', '事業独占力'];
+  const labels = Object.keys(scores);
   // スコア差分（自社 - 業界平均）
-  const diffs = [72-50, 85-60, 45-55, 78-65, 68-50, 62-50, 75-55, 70-55];
+  const diffs = labels.map(function(k) { return scores[k] - (industryAvg[k] || 50); });
   const colors = diffs.map(d => d >= 0 ? COLOR_BLUE_600 : COLOR_RED_600);
-  const bgColors = diffs.map(d => d >= 0 ? 'rgba(52, 96, 251, 0.15)' : 'rgba(254, 57, 57, 0.15)');
 
   new Chart(ctx, {
     type: 'bar',
@@ -1025,7 +824,6 @@ const COLOR_RED_200   = '#FFBBBB';
             },
           },
         },
-        // ゼロライン強調
         annotation: undefined,
       },
     },
@@ -1033,35 +831,9 @@ const COLOR_RED_200   = '#FFBBBB';
 })();
 
 
-// ===== 3ページ: 株価チャート（複合） =====
+// ===== 株価チャート（複合） =====
 (function() {
   const ctx = document.getElementById('priceChart').getContext('2d');
-
-  // 直近12週（84日）分のダミーデータ生成
-  function generateDates(weeks) {
-    const dates = [];
-    const base = new Date('2026-01-09');
-    for (let i = 0; i < weeks * 5; i++) {
-      const d = new Date(base);
-      d.setDate(base.getDate() + i + Math.floor(i / 5) * 2);
-      // 土日スキップ（簡易）
-      if (d.getDay() !== 0 && d.getDay() !== 6) {
-        dates.push(d.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' }));
-      }
-    }
-    return dates.slice(0, 60);
-  }
-
-  function generatePrices(start, len, seed) {
-    const prices = [start];
-    let r = seed;
-    for (let i = 1; i < len; i++) {
-      r = (r * 1664525 + 1013904223) & 0xffffffff;
-      const change = ((r % 200) - 90) * 0.4;
-      prices.push(Math.round((prices[i - 1] + change) * 10) / 10);
-    }
-    return prices;
-  }
 
   function sma(prices, n) {
     return prices.map((_, i) => {
@@ -1071,22 +843,11 @@ const COLOR_RED_200   = '#FFBBBB';
     });
   }
 
-  function generateVolume(len, seed) {
-    const vols = [];
-    let r = seed + 42;
-    for (let i = 0; i < len; i++) {
-      r = (r * 22695477 + 1) & 0xffffffff;
-      vols.push(Math.abs(r % 8000000) + 5000000);
-    }
-    return vols;
-  }
-
-  const labels = generateDates(12);
-  const len = labels.length;
-  const prices = generatePrices(2350, len, 12345);
-  const sma50  = sma(prices, Math.min(50, len));
-  const sma200 = sma(prices, Math.min(200, len));
-  const volume = generateVolume(len, 99999);
+  const labels  = priceData.map(function(d) { return d.date; });
+  const prices  = priceData.map(function(d) { return d.close; });
+  const volume  = priceData.map(function(d) { return d.volume; });
+  const sma50   = sma(prices, Math.min(50, prices.length));
+  const sma200  = hasSma200 === 'true' ? sma(prices, Math.min(200, prices.length)) : prices.map(() => null);
 
   new Chart(ctx, {
     type: 'bar',
@@ -1120,6 +881,7 @@ const COLOR_RED_200   = '#FFBBBB';
           order: 2,
           tension: 0.3,
           spanGaps: true,
+          hidden: hasSma200 !== 'true',
         },
         // SMA50
         {

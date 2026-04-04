@@ -14,10 +14,31 @@ export interface AnalysisInput {
     equityRatio: number;         // 自己資本比率（%）
     altmanZ: number | null;      // null=金融業でスキップ
     isFinancial: boolean;
+    // 追加フィールド
+    ebitda: number;
+    ebitdaMargin: number;              // %
+    interestBearingDebt: number;
+    cashAndDeposits: number;
+    netDebtToEbitda: number | null;    // null=EBITDA負
+    debtToEquityRatio: number;
+    operatingCFToDebt: number;         // %
+    operatingIncomePerEmployee: number;
+    capexRatio: number;                // %
+    sgaRatio: number;                  // %
+    fcfMargin: number;                 // %
+    revenueCagr5y: number;             // 売上5年CAGR（%）
+    // 10年分の時系列データ（Moat用）
+    operatingMarginHistory: number[];  // 過去10年のoperatingMargin
+    roeHistory: number[];              // 過去10年のROE
+    fcfMarginHistory: number[];        // 過去10年のfcfMargin
+    sgaRatioHistory: number[];         // 過去10年のsgaRatio
   };
   industryAvg: {
     per: number;
     operatingMarginPercent: number;
+    // 追加
+    evToEbitda: number;
+    operatingIncomePerEmployee: number;
   };
   technical: {
     sepaStage: 'S1' | 'S2' | 'S3' | 'S4';
@@ -41,8 +62,8 @@ export interface AnalysisInput {
   };
 }
 
-/** 7軸スコア（各0〜100） */
-export interface SevenAxisScores {
+/** 8軸スコア（各0〜100） */
+export interface EightAxisScores {
   valuation: number;
   profitability: number;
   growth: number;
@@ -50,6 +71,7 @@ export interface SevenAxisScores {
   trend: number;
   supplyDemand: number;
   shareholderReturn: number;
+  moat: number;
 }
 
 /** 値をmin〜maxの範囲にクランプ */
@@ -69,39 +91,49 @@ export function lerp(
 }
 
 export function calcValuation(
-  data: Pick<AnalysisInput['fundamentals'], 'dcfGapPercent' | 'per' | 'pbr' | 'ncavToMarketCap'>,
-  industry: Pick<AnalysisInput['industryAvg'], 'per'>,
+  data: Pick<AnalysisInput['fundamentals'], 'dcfGapPercent' | 'per' | 'pbr' | 'ncavToMarketCap' | 'ebitda' | 'interestBearingDebt' | 'cashAndDeposits'>,
+  industry: Pick<AnalysisInput['industryAvg'], 'per' | 'evToEbitda'>,
+  marketCap?: number,
 ): number {
-  // 主指標: DCF乖離率（60%）— -30→10, 0→50, +30→90
+  // 主指標: DCF乖離率（50%）
   const dcfScore = lerp(data.dcfGapPercent, -30, 30, 10, 90);
 
-  // 補助: PER vs業界平均（20%）— 低い方が高スコア
+  // 補助: EV/EBITDA vs業界平均（20%）
+  let evEbitdaScore = 50;
+  if (data.ebitda > 0 && marketCap) {
+    const ev = marketCap + data.interestBearingDebt - data.cashAndDeposits;
+    const evEbitda = ev / data.ebitda;
+    const ratio = evEbitda / industry.evToEbitda;
+    evEbitdaScore = lerp(ratio, 0.5, 1.5, 90, 10); // 低い方が割安
+  }
+
+  // 補助: PER vs業界平均（15%）
   const perRatio = data.per / industry.per;
   const perScore = lerp(perRatio, 0.5, 1.5, 90, 10);
 
-  // 補助: PBR（10%）— スコアとして扱う
-  let pbrScore: number;
-  if (data.pbr <= 0.5) pbrScore = 90;
+  // 補助: PBR（10%）
+  let pbrScore = 50;
+  if (data.pbr <= 0.5) pbrScore = 80;
   else if (data.pbr <= 1.0) pbrScore = 65;
-  else pbrScore = 40;
+  else if (data.pbr <= 2.0) pbrScore = 45;
+  else pbrScore = 25;
 
-  // 補助: ネットネット判定（10%）— スコアとして扱う
-  let nnScore: number;
+  // 補助: ネットネット（5%）
+  let nnScore = 50;
   const nn = data.ncavToMarketCap;
-  if (nn > 1.5) nnScore = 90;
-  else if (nn >= 1.0) nnScore = 70;
-  else if (nn >= 0.67) nnScore = 55;
-  else nnScore = 30;
+  if (nn > 1.5) nnScore = 100;
+  else if (nn >= 1.0) nnScore = 85;
+  else if (nn >= 0.67) nnScore = 65;
 
-  const raw = dcfScore * 0.6 + perScore * 0.2 + pbrScore * 0.1 + nnScore * 0.1;
+  const raw = dcfScore * 0.5 + evEbitdaScore * 0.2 + perScore * 0.15 + pbrScore * 0.1 + nnScore * 0.05;
   return clamp(Math.round(raw), 0, 100);
 }
 
 export function calcProfitability(
-  data: Pick<AnalysisInput['fundamentals'], 'roe' | 'operatingMarginPercent' | 'roa'>,
-  industry: Pick<AnalysisInput['industryAvg'], 'operatingMarginPercent'>,
+  data: Pick<AnalysisInput['fundamentals'], 'roe' | 'operatingMarginPercent' | 'roa' | 'ebitdaMargin' | 'operatingIncomePerEmployee'>,
+  industry: Pick<AnalysisInput['industryAvg'], 'operatingMarginPercent' | 'operatingIncomePerEmployee'>,
 ): number {
-  // 主指標: ROE（50%）
+  // 主指標: ROE（40%）
   let roeScore: number;
   if (data.roe >= 20) roeScore = 90;
   else if (data.roe >= 15) roeScore = 80;
@@ -109,17 +141,33 @@ export function calcProfitability(
   else if (data.roe >= 5) roeScore = 40;
   else roeScore = 20;
 
-  // 補助: 営業利益率 vs業界平均（30%）
+  // 補助: 営業利益率 vs業界平均（20%）
   const marginRatio = data.operatingMarginPercent / industry.operatingMarginPercent;
   const marginScore = lerp(marginRatio, 0.5, 2.0, 10, 90);
 
-  // 補助: ROA（20%）— スコアとして扱う
-  let roaScore: number;
-  if (data.roa >= 8) roaScore = 80;
-  else if (data.roa >= 5) roaScore = 75;
-  else roaScore = 30;
+  // 補助: EBITDAマージン（15%）
+  let ebitdaScore: number;
+  if (data.ebitdaMargin >= 20) ebitdaScore = 90;
+  else if (data.ebitdaMargin >= 15) ebitdaScore = 70;
+  else if (data.ebitdaMargin >= 10) ebitdaScore = 50;
+  else if (data.ebitdaMargin >= 5) ebitdaScore = 30;
+  else ebitdaScore = 15;
 
-  const raw = roeScore * 0.5 + marginScore * 0.3 + roaScore * 0.2;
+  // 補助: 従業員あたり営業利益（15%）
+  let empScore = 50;
+  if (industry.operatingIncomePerEmployee > 0) {
+    const empRatio = data.operatingIncomePerEmployee / industry.operatingIncomePerEmployee;
+    empScore = lerp(empRatio, 0.5, 2.0, 10, 90);
+  }
+
+  // 補助: ROA（10%）
+  let roaScore = 50;
+  if (data.roa >= 8) roaScore = 80;
+  else if (data.roa >= 5) roaScore = 65;
+  else if (data.roa >= 3) roaScore = 45;
+  else roaScore = 25;
+
+  const raw = roeScore * 0.4 + marginScore * 0.2 + ebitdaScore * 0.15 + empScore * 0.15 + roaScore * 0.1;
   return clamp(Math.round(raw), 0, 100);
 }
 
@@ -132,29 +180,29 @@ function cagrToScore(cagr: number): number {
 }
 
 export function calcGrowth(
-  data: Pick<AnalysisInput['fundamentals'], 'revenueCagr3y' | 'epsCagr3y' | 'peg'>,
+  data: Pick<AnalysisInput['fundamentals'], 'revenueCagr3y' | 'epsCagr3y' | 'peg' | 'capexRatio' | 'revenueCagr5y'>,
 ): number {
-  // 主指標: 売上CAGR（40%）
   const revenueScore = cagrToScore(data.revenueCagr3y);
-
-  // 補助: EPS成長率（40%）
   const epsScore = cagrToScore(data.epsCagr3y);
 
-  // 補助: PEG（20%）— スコアとして扱う。null=中立（50）
-  let pegScore: number;
-  if (data.peg === null) {
-    pegScore = 50;
-  } else if (data.peg < 0.5) {
-    pegScore = 90;
-  } else if (data.peg < 1.0) {
-    pegScore = 70;
-  } else if (data.peg > 2.0) {
-    pegScore = 30;
-  } else {
-    pegScore = 50;
+  let pegBonus = 0;
+  if (data.peg !== null) {
+    if (data.peg < 0.5) pegBonus = 10;
+    else if (data.peg < 1.0) pegBonus = 5;
+    else if (data.peg > 2.0) pegBonus = -5;
   }
 
-  const raw = revenueScore * 0.4 + epsScore * 0.4 + pegScore * 0.2;
+  // 補助: 設備投資比率（15%）— 高い=成長投資中
+  let capexScore: number;
+  if (data.capexRatio >= 10) capexScore = 80;
+  else if (data.capexRatio >= 5) capexScore = 65;
+  else if (data.capexRatio >= 3) capexScore = 50;
+  else capexScore = 35;
+
+  // 補助: 売上5年CAGR（10%）
+  const cagr5yScore = cagrToScore(data.revenueCagr5y);
+
+  const raw = revenueScore * 0.3 + epsScore * 0.3 + (50 + pegBonus) * 0.15 + capexScore * 0.15 + cagr5yScore * 0.1;
   return clamp(Math.round(raw), 0, 100);
 }
 
@@ -167,26 +215,48 @@ export function equityToScore(ratio: number): number {
 }
 
 export function calcSafety(
-  data: Pick<AnalysisInput['fundamentals'], 'altmanZ' | 'equityRatio' | 'isFinancial'>,
+  data: Pick<AnalysisInput['fundamentals'], 'altmanZ' | 'equityRatio' | 'isFinancial' | 'netDebtToEbitda' | 'debtToEquityRatio' | 'operatingCFToDebt'>,
 ): number {
   if (data.isFinancial || data.altmanZ === null) {
-    // 金融業: 自己資本比率のみ（100%）
     return clamp(Math.round(equityToScore(data.equityRatio)), 0, 100);
   }
 
-  // 主指標: Altman Z''（60%）
-  const z = data.altmanZ;
+  // 主指標: Altman Z''（30%）
   let altmanScore: number;
+  const z = data.altmanZ;
   if (z >= 3.0) altmanScore = 90;
   else if (z >= 2.6) altmanScore = 80;
   else if (z >= 1.8) altmanScore = 60;
   else if (z >= 1.1) altmanScore = 40;
   else altmanScore = 20;
 
-  // 補助: 自己資本比率（40%）— equityToScore でベーススコア化してから加重
+  // 補助: Net Debt/EBITDA（25%）
+  let ndScore = 50;
+  if (data.netDebtToEbitda !== null) {
+    if (data.netDebtToEbitda <= 0) ndScore = 90;       // ネットキャッシュ
+    else if (data.netDebtToEbitda <= 2) ndScore = 70;
+    else if (data.netDebtToEbitda <= 4) ndScore = 50;
+    else ndScore = 20;
+  }
+
+  // 補助: 自己資本比率（15%）
   const eqScore = equityToScore(data.equityRatio);
 
-  const raw = altmanScore * 0.6 + eqScore * 0.4;
+  // 補助: D/Eレシオ（15%）
+  let deScore: number;
+  if (data.debtToEquityRatio < 0.5) deScore = 90;
+  else if (data.debtToEquityRatio < 1.0) deScore = 70;
+  else if (data.debtToEquityRatio < 2.0) deScore = 50;
+  else deScore = 20;
+
+  // 補助: 営業CF対有利子負債比率（15%）
+  let cfDebtScore: number;
+  if (data.operatingCFToDebt >= 50) cfDebtScore = 90;
+  else if (data.operatingCFToDebt >= 30) cfDebtScore = 70;
+  else if (data.operatingCFToDebt >= 20) cfDebtScore = 50;
+  else cfDebtScore = 20;
+
+  const raw = altmanScore * 0.3 + ndScore * 0.25 + eqScore * 0.15 + deScore * 0.15 + cfDebtScore * 0.15;
   return clamp(Math.round(raw), 0, 100);
 }
 
@@ -308,7 +378,61 @@ export function calcShareholderReturn(data: AnalysisInput['shareholderReturn']):
   return clamp(Math.round(raw), 0, 100);
 }
 
-export function calculateAllScores(input: AnalysisInput): SevenAxisScores {
+/** 標準偏差を計算 */
+export function stddev(values: number[]): number {
+  if (values.length < 2) return 0;
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / (values.length - 1);
+  return Math.sqrt(variance);
+}
+
+export function calcMoat(
+  data: Pick<AnalysisInput['fundamentals'], 'operatingMarginHistory' | 'roeHistory' | 'fcfMarginHistory' | 'operatingMarginPercent' | 'sgaRatioHistory'>,
+): number {
+  // 主指標: 営業利益率の安定性（35%）
+  const omStd = stddev(data.operatingMarginHistory);
+  let omStabilityScore: number;
+  if (omStd < 2) omStabilityScore = 90;
+  else if (omStd < 4) omStabilityScore = 70;
+  else if (omStd < 6) omStabilityScore = 50;
+  else if (omStd < 10) omStabilityScore = 30;
+  else omStabilityScore = 15;
+
+  // 補助: ROEの安定性（20%）
+  const roeStd = stddev(data.roeHistory);
+  let roeStabilityScore: number;
+  if (roeStd < 3) roeStabilityScore = 90;
+  else if (roeStd < 5) roeStabilityScore = 70;
+  else if (roeStd < 8) roeStabilityScore = 50;
+  else roeStabilityScore = 20;
+
+  // 補助: FCFマージンの安定性（20%）
+  const fcfStd = stddev(data.fcfMarginHistory);
+  let fcfStabilityScore: number;
+  if (fcfStd < 3) fcfStabilityScore = 90;
+  else if (fcfStd < 5) fcfStabilityScore = 70;
+  else if (fcfStd < 8) fcfStabilityScore = 50;
+  else fcfStabilityScore = 20;
+
+  // 補助: 営業利益率の水準（15%）
+  let omLevelScore: number;
+  if (data.operatingMarginPercent >= 15) omLevelScore = 90;
+  else if (data.operatingMarginPercent >= 10) omLevelScore = 70;
+  else if (data.operatingMarginPercent >= 5) omLevelScore = 50;
+  else omLevelScore = 20;
+
+  // 補助: SGA比率の安定性（10%）
+  const sgaStd = stddev(data.sgaRatioHistory);
+  let sgaStabilityScore: number;
+  if (sgaStd < 2) sgaStabilityScore = 80;
+  else if (sgaStd < 4) sgaStabilityScore = 60;
+  else sgaStabilityScore = 30;
+
+  const raw = omStabilityScore * 0.35 + roeStabilityScore * 0.2 + fcfStabilityScore * 0.2 + omLevelScore * 0.15 + sgaStabilityScore * 0.1;
+  return clamp(Math.round(raw), 0, 100);
+}
+
+export function calculateAllScores(input: AnalysisInput): EightAxisScores {
   return {
     valuation: calcValuation(input.fundamentals, input.industryAvg),
     profitability: calcProfitability(input.fundamentals, input.industryAvg),
@@ -317,5 +441,6 @@ export function calculateAllScores(input: AnalysisInput): SevenAxisScores {
     trend: calcTrend(input.technical),
     supplyDemand: calcSupplyDemand(input.supplyDemand),
     shareholderReturn: calcShareholderReturn(input.shareholderReturn),
+    moat: calcMoat(input.fundamentals),
   };
 }

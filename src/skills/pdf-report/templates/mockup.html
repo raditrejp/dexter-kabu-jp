@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日本株分析レポート — トヨタ自動車（7203）</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* ===== リセット & ベース ===== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      /* デジタル庁カラーパレット */
+      --blue-50:   #D9E6FF;
+      --blue-200:  #C5D7FB;
+      --blue-400:  #7096F8;
+      --blue-600:  #3460FB;
+      --blue-900:  #0017C1;
+      --blue-1200: #000060;
+
+      --red-200:   #FFBBBB;
+      --red-600:   #FE3939;
+
+      --gray-50:   #F2F2F2;
+      --gray-200:  #CCCCCC;
+      --gray-400:  #999999;
+      --gray-700:  #4D4D4D;
+      --gray-900:  #1A1A1A;
+
+      --green-600: #259D63;
+      --orange-600: #FB5B01;
+
+      --bg: #F8F8FB;
+      --text-primary: #000000;
+      --text-label: #626264;
+
+      /* タイポグラフィ */
+      --font: system-ui, -apple-system, 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+
+      /* A4 寸法 */
+      --page-w: 210mm;
+      --page-h: 297mm;
+      --page-pad: 14mm 14mm 12mm;
+    }
+
+    html, body {
+      background: var(--gray-200);
+      font-family: var(--font);
+      color: var(--text-primary);
+      font-size: 10pt;
+      line-height: 1.55;
+    }
+
+    /* ===== ページ ===== */
+    .page {
+      width: var(--page-w);
+      background: var(--bg);
+      padding: var(--page-pad);
+      margin: 12px auto;
+      position: relative;
+    }
+
+    /* ===== ヘッダー ===== */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--blue-600);
+      margin-bottom: 12px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .header-brand {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-brand .ticker {
+      font-size: 7pt;
+      color: var(--text-label);
+      letter-spacing: 0.04em;
+    }
+
+    .header-brand .company-name {
+      font-size: 15pt;
+      font-weight: 700;
+      color: var(--blue-900);
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .header-meta {
+      display: flex;
+      gap: 18px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .meta-item .label {
+      font-size: 6.5pt;
+      color: var(--text-label);
+      letter-spacing: 0.04em;
+    }
+
+    .meta-item .value {
+      font-size: 9pt;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .meta-item .value.price {
+      font-size: 13pt;
+      color: var(--blue-600);
+    }
+
+    /* ===== ページタイトル（2・3ページ用） ===== */
+    .section-title {
+      font-size: 11pt;
+      font-weight: 700;
+      color: var(--blue-900);
+      padding: 4px 10px;
+      background: var(--blue-50);
+      border-left: 3px solid var(--blue-600);
+      margin-bottom: 10px;
+    }
+
+    /* ===== 1ページ: メイングリッド ===== */
+    .p1-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    /* ===== レーダーチャートコンテナ ===== */
+    .radar-wrap {
+      background: #fff;
+      border-radius: 6px;
+      padding: 12px;
+      border: 1px solid var(--gray-200);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-title {
+      font-size: 8pt;
+      font-weight: 700;
+      color: var(--text-label);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 12px;
+      margin-top: 6px;
+      justify-content: center;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 7pt;
+      color: var(--text-label);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .legend-dot.company {
+      background: var(--blue-600);
+    }
+
+    .legend-dot.industry {
+      background: var(--gray-400);
+    }
+
+    /* ===== コメントエリア ===== */
+    .comment-wrap {
+      background: #fff;
+      border-radius: 6px;
+      padding: 12px 14px;
+      border: 1px solid var(--gray-200);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .verdict-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--blue-50);
+      color: var(--blue-900);
+      font-size: 8pt;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.03em;
+      width: fit-content;
+    }
+
+    .verdict-badge::before {
+      content: "▲";
+      font-size: 7pt;
+      color: var(--blue-600);
+    }
+
+    .comment-text {
+      font-size: 8.5pt;
+      line-height: 1.75;
+      color: var(--text-primary);
+    }
+
+    .comment-highlights {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .highlight-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .highlight-tag {
+      font-size: 6.5pt;
+      font-weight: 700;
+      color: #fff;
+      padding: 1px 6px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    .highlight-tag.positive { background: var(--blue-600); }
+    .highlight-tag.neutral  { background: var(--gray-400); }
+    .highlight-tag.negative { background: var(--orange-600); }
+
+    .highlight-text {
+      font-size: 7.5pt;
+      color: var(--gray-700);
+    }
+
+    /* ===== 7軸スコアカード（1ページ下部） ===== */
+    .score-cards {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    .score-card {
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid var(--gray-200);
+      padding: 8px 6px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .score-card .axis-label {
+      font-size: 6.5pt;
+      color: var(--text-label);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .score-card .score-num {
+      font-size: 18pt;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .score-card .score-num.above { color: var(--blue-600); }
+    .score-card .score-num.below { color: var(--red-600); }
+
+    .score-card .score-bar-bg {
+      width: 100%;
+      height: 4px;
+      background: var(--gray-50);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .score-card .score-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0s;
+    }
+
+    .score-card .score-bar-fill.above { background: var(--blue-600); }
+    .score-card .score-bar-fill.below { background: var(--red-600); }
+
+    .score-card .avg-label {
+      font-size: 6pt;
+      color: var(--text-label);
+    }
+
+    /* ===== 2ページ: 詳細カードグリッド ===== */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .detail-card {
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid var(--gray-200);
+      padding: 10px 12px;
+    }
+
+    .detail-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .detail-axis-name {
+      font-size: 8pt;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .detail-score-badge {
+      font-size: 13pt;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .detail-score-badge.above { color: var(--blue-600); }
+    .detail-score-badge.below { color: var(--red-600); }
+
+    .detail-progress-bg {
+      width: 100%;
+      height: 5px;
+      background: var(--gray-50);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 7px;
+      position: relative;
+    }
+
+    .detail-progress-fill {
+      height: 100%;
+      border-radius: 3px;
+    }
+
+    .detail-progress-fill.above { background: var(--blue-600); }
+    .detail-progress-fill.below { background: var(--red-600); }
+
+    .detail-avg-marker {
+      position: absolute;
+      top: -1px;
+      width: 2px;
+      height: 7px;
+      background: var(--gray-400);
+      border-radius: 1px;
+    }
+
+    .detail-evidence {
+      font-size: 7pt;
+      color: var(--gray-700);
+      line-height: 1.65;
+    }
+
+    .detail-evidence strong {
+      color: var(--text-primary);
+    }
+
+    /* 1軸だけ残り（7つ目）を全幅に */
+    .detail-card.full-width {
+      grid-column: 1 / -1;
+    }
+
+    /* ===== 2ページ: 横棒チャートコンテナ ===== */
+    .bar-chart-wrap {
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid var(--gray-200);
+      padding: 10px 14px;
+    }
+
+    /* ===== 3ページ: チャートコンテナ ===== */
+    .price-chart-wrap {
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid var(--gray-200);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+
+    /* ===== リスクセクション ===== */
+    .risk-section {
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid var(--red-200);
+      padding: 10px 14px;
+      margin-bottom: 12px;
+    }
+
+    .risk-title {
+      font-size: 8pt;
+      font-weight: 700;
+      color: var(--red-600);
+      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .risk-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .risk-list li {
+      display: flex;
+      gap: 8px;
+      font-size: 7.5pt;
+      color: var(--gray-700);
+      line-height: 1.55;
+    }
+
+    .risk-list li::before {
+      content: "▶";
+      color: var(--red-600);
+      font-size: 6pt;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    /* ===== フッター ===== */
+    .page-footer {
+      border-top: 1px solid var(--gray-200);
+      padding-top: 6px;
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .footer-left {
+      font-size: 6pt;
+      color: var(--text-label);
+      line-height: 1.6;
+    }
+
+    .footer-right {
+      font-size: 6pt;
+      color: var(--text-label);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* ===== ページ番号 ===== */
+    .page-num {
+      position: absolute;
+      bottom: 10mm;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 6pt;
+      color: var(--text-label);
+    }
+
+    /* ===== ユーティリティ ===== */
+    .mt-8  { margin-top: 8px; }
+    .mb-8  { margin-bottom: 8px; }
+
+    /* ===== 印刷用 ===== */
+    @media print {
+      html, body {
+        background: white;
+      }
+
+      .page {
+        margin: 0;
+        box-shadow: none;
+      }
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     PAGE 1: サマリー
+============================================================ -->
+<div class="page" id="page1">
+
+  <!-- ヘッダー -->
+  <header class="page-header">
+    <div class="header-brand">
+      <span class="ticker">東証プライム｜7203｜輸送用機器</span>
+      <span class="company-name">トヨタ自動車</span>
+    </div>
+    <div class="header-meta">
+      <div class="meta-item">
+        <span class="label">分析日</span>
+        <span class="value">2026-04-04</span>
+      </div>
+      <div class="meta-item">
+        <span class="label">時価総額</span>
+        <span class="value">41.2兆円</span>
+      </div>
+      <div class="meta-item">
+        <span class="label">株価（現在値）</span>
+        <span class="value price">2,530 円</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- メイングリッド: レーダー + コメント -->
+  <div class="p1-grid">
+
+    <!-- レーダーチャート -->
+    <div class="radar-wrap">
+      <div class="chart-title">7軸スコア — レーダーチャート</div>
+      <canvas id="radarChart" style="max-height: 200px;"></canvas>
+      <div class="chart-legend">
+        <div class="legend-item">
+          <div class="legend-dot company"></div>
+          トヨタ自動車
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot industry"></div>
+          業界平均
+        </div>
+      </div>
+    </div>
+
+    <!-- 総合コメント -->
+    <div class="comment-wrap">
+      <div class="chart-title">総合評価コメント</div>
+      <div class="verdict-badge">やや強気</div>
+
+      <p class="comment-text">
+        トヨタ自動車は<strong>稼ぐ力（ROE 18.2%）</strong>と<strong>安全性（自己資本比率 52%）</strong>で業界を大きく上回る。DCFベースの理論株価は<strong>2,850円</strong>（現在比 +12.6%）と割安圏にあり、上昇余地が残る。一方で<strong>成長性は業界平均を下回り</strong>、EV転換期の設備投資負担が重くEPS成長が鈍化。還元力は連続増配・自社株買いで高水準を維持。総合的には<strong>やや強気</strong>だが、成長性の回復が本格的な再評価のカギとなる。
+      </p>
+
+      <div class="comment-highlights">
+        <div class="highlight-row">
+          <span class="highlight-tag positive">強み</span>
+          <span class="highlight-text">稼ぐ力・安全性・割安度が業界平均を大幅上回る</span>
+        </div>
+        <div class="highlight-row">
+          <span class="highlight-tag neutral">注目</span>
+          <span class="highlight-text">トレンド・需給は良好、モメンタム継続中</span>
+        </div>
+        <div class="highlight-row">
+          <span class="highlight-tag negative">懸念</span>
+          <span class="highlight-text">成長性がEV転換コストで業界平均を下回る</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7軸スコアカード -->
+  <div class="section-title">7軸スコア一覧</div>
+  <div class="score-cards">
+
+    <div class="score-card">
+      <span class="axis-label">割安度</span>
+      <span class="score-num above">72</span>
+      <div class="score-bar-bg">
+        <div class="score-bar-fill above" style="width:72%"></div>
+      </div>
+      <span class="avg-label">業界平均 50</span>
+    </div>
+
+    <div class="score-card">
+      <span class="axis-label">稼ぐ力</span>
+      <span class="score-num above">85</span>
+      <div class="score-bar-bg">
+        <div class="score-bar-fill above" style="width:85%"></div>
+      </div>
+      <span class="avg-label">業界平均 60</span>
+    </div>
+
+    <div class="score-card">
+      <span class="axis-label">成長性</span>
+      <span class="score-num below">45</span>
+      <div class="score-bar-bg">
+        <div class="score-bar-fill below" style="width:45%"></div>
+      </div>
+      <span class="avg-label">業界平均 55</span>
+    </div>
+
+    <div class="score-card">
+      <span class="axis-label">安全性</span>
+      <span class="score-num above">78</span>
+      <div class="score-bar-bg">
+        <div class="score-bar-fill above" style="width:78%"></div>
+      </div>
+      <span class="avg-label">業界平均 65</span>
+    </div>
+
+    <div class="score-card">
+      <span class="axis-label">トレンド</span>
+      <span class="score-num above">68</span>
+      <div class="score-bar-bg">
+        <div class="score-bar-fill above" style="width:68%"></div>
+      </div>
+      <span class="avg-label">業界平均 50</span>
+    </div>
+
+    <div class="score-card">
+      <span class="axis-label">需給</span>
+      <span class="score-num above">62</span>
+      <div class="score-bar-bg">
+        <div class="score-bar-fill above" style="width:62%"></div>
+      </div>
+      <span class="avg-label">業界平均 50</span>
+    </div>
+
+    <div class="score-card">
+      <span class="axis-label">還元力</span>
+      <span class="score-num above">75</span>
+      <div class="score-bar-bg">
+        <div class="score-bar-fill above" style="width:75%"></div>
+      </div>
+      <span class="avg-label">業界平均 55</span>
+    </div>
+
+  </div>
+
+  <!-- 各軸の詳細スコアと根拠 -->
+  <hr style="border:none; border-top:1px solid var(--gray-200); margin-top:20px; margin-bottom:20px;">
+  <div class="section-title" style="margin-top:0;">各軸の詳細スコアと根拠</div>
+
+  <div class="detail-grid">
+
+    <!-- 割安度 -->
+    <div class="detail-card">
+      <div class="detail-card-header">
+        <span class="detail-axis-name">割安度</span>
+        <span class="detail-score-badge above">72 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
+      </div>
+      <div class="detail-progress-bg">
+        <div class="detail-progress-fill above" style="width:72%"></div>
+        <div class="detail-avg-marker" style="left:50%"></div>
+      </div>
+      <div class="detail-evidence">
+        <strong>DCF理論株価 2,850円</strong>（現在比 <strong style="color:var(--blue-600)">+12.6%</strong> の上昇余地）。<br>
+        PER <strong>15倍</strong>（業界平均 20倍 → 割安）、PBR <strong>1.2倍</strong>（前年 1.4倍 → 改善）。<br>
+        バリュエーション面で業界平均を大きく上回り、安全域が確保されている。
+      </div>
+    </div>
+
+    <!-- 稼ぐ力 -->
+    <div class="detail-card">
+      <div class="detail-card-header">
+        <span class="detail-axis-name">稼ぐ力</span>
+        <span class="detail-score-badge above">85 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
+      </div>
+      <div class="detail-progress-bg">
+        <div class="detail-progress-fill above" style="width:85%"></div>
+        <div class="detail-avg-marker" style="left:60%"></div>
+      </div>
+      <div class="detail-evidence">
+        <strong>ROE 18.2%</strong>（業界平均 12.5% → <strong style="color:var(--blue-600)">大幅上回る</strong>）。<br>
+        営業利益率 <strong>9.8%</strong>（前年 8.5% → 改善）、収益の質・持続性ともに高水準。<br>
+        トヨタ生産方式による原価低減が収益性を構造的に底上げしている。
+      </div>
+    </div>
+
+    <!-- 成長性 -->
+    <div class="detail-card">
+      <div class="detail-card-header">
+        <span class="detail-axis-name">成長性</span>
+        <span class="detail-score-badge below">45 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
+      </div>
+      <div class="detail-progress-bg">
+        <div class="detail-progress-fill below" style="width:45%"></div>
+        <div class="detail-avg-marker" style="left:55%"></div>
+      </div>
+      <div class="detail-evidence">
+        売上成長率 <strong>3.2%</strong>（業界平均 5.8% → <strong style="color:var(--red-600)">下回る</strong>）。<br>
+        EPS成長率 <strong>2.1%</strong>（前年 8.5% → 鈍化）。EV転換期の設備投資増が重荷。<br>
+        BEVラインナップ拡充の進捗が成長性回復のカギ。
+      </div>
+    </div>
+
+    <!-- 安全性 -->
+    <div class="detail-card">
+      <div class="detail-card-header">
+        <span class="detail-axis-name">安全性</span>
+        <span class="detail-score-badge above">78 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
+      </div>
+      <div class="detail-progress-bg">
+        <div class="detail-progress-fill above" style="width:78%"></div>
+        <div class="detail-avg-marker" style="left:65%"></div>
+      </div>
+      <div class="detail-evidence">
+        <strong>Altman Z'' スコア 3.2</strong>（安全圏: ≥2.6）、倒産リスクは極めて低い。<br>
+        自己資本比率 <strong>52%</strong>（前年 50% → 改善）、財務基盤が強固。<br>
+        大規模な手元流動性と多様な資金調達手段で財務的柔軟性を確保。
+      </div>
+    </div>
+
+    <!-- トレンド -->
+    <div class="detail-card">
+      <div class="detail-card-header">
+        <span class="detail-axis-name">トレンド</span>
+        <span class="detail-score-badge above">68 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
+      </div>
+      <div class="detail-progress-bg">
+        <div class="detail-progress-fill above" style="width:68%"></div>
+        <div class="detail-avg-marker" style="left:50%"></div>
+      </div>
+      <div class="detail-evidence">
+        <strong>SEPA: S2（上昇初期）</strong>、ダウ理論: 上昇トレンド継続。<br>
+        グランビル法則: <strong>B2（押し目買い）</strong> シグナル発生中。<br>
+        SMA50 がSMA200を上回りゴールデンクロス維持、中期上昇バイアス。
+      </div>
+    </div>
+
+    <!-- 需給 -->
+    <div class="detail-card">
+      <div class="detail-card-header">
+        <span class="detail-axis-name">需給</span>
+        <span class="detail-score-badge above">62 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
+      </div>
+      <div class="detail-progress-bg">
+        <div class="detail-progress-fill above" style="width:62%"></div>
+        <div class="detail-avg-marker" style="left:50%"></div>
+      </div>
+      <div class="detail-evidence">
+        信用倍率 <strong>3.1倍</strong>（良好ゾーン、過熱感なし）。<br>
+        出来高20日平均比 <strong>+15%</strong>（買い圧力の増加を示唆）。<br>
+        外国人投資家の継続的な買い越しが観測され、需給は底堅い。
+      </div>
+    </div>
+
+    <!-- 還元力（全幅） -->
+    <div class="detail-card full-width">
+      <div class="detail-card-header">
+        <span class="detail-axis-name">還元力</span>
+        <span class="detail-score-badge above">75 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
+      </div>
+      <div class="detail-progress-bg">
+        <div class="detail-progress-fill above" style="width:75%"></div>
+        <div class="detail-avg-marker" style="left:55%"></div>
+      </div>
+      <div class="detail-evidence">
+        配当利回り <strong>2.8%</strong>、増配率トレンド: 年平均 <strong>+8%（加速傾向）</strong>、配当性向 <strong>32%</strong>（余裕あり）。
+        自社株買いを継続実施し、総還元利回りは業界平均を大幅に上回る。過去10年以上の増配継続実績を持ち、株主還元の信頼性が高い。
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 横棒グラフ: 業界平均との差 -->
+  <div class="bar-chart-wrap">
+    <div class="chart-title">業界平均との差（スコア差分）— 原点: 業界平均</div>
+    <canvas id="barChart" style="max-height: 100px;"></canvas>
+  </div>
+
+  <!-- 株価チャート -->
+  <div class="section-title" style="margin-top:20px;">株価チャート（直近12週 日足）</div>
+  <div class="price-chart-wrap">
+    <div class="chart-legend" style="justify-content:flex-start; gap:16px; margin-bottom:6px;">
+      <div class="legend-item">
+        <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#3460FB" stroke-width="2"/><circle cx="10" cy="5" r="3" fill="#3460FB"/></svg>
+        終値
+      </div>
+      <div class="legend-item">
+        <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#7096F8" stroke-width="1.5" stroke-dasharray="4,2"/></svg>
+        SMA50
+      </div>
+      <div class="legend-item">
+        <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#999999" stroke-width="1.5" stroke-dasharray="4,2"/></svg>
+        SMA200
+      </div>
+      <div class="legend-item">
+        <svg width="12" height="10"><rect x="1" y="0" width="10" height="10" rx="2" fill="#C5D7FB"/></svg>
+        出来高
+      </div>
+    </div>
+    <canvas id="priceChart" style="max-height: 170px;"></canvas>
+  </div>
+
+  <!-- リスク要因 -->
+  <div class="section-title" style="margin-top:20px;">リスク要因</div>
+  <div class="risk-section">
+    <div class="risk-title">主なリスク</div>
+    <ul class="risk-list">
+      <li>
+        <strong>EV転換コストの長期化リスク:</strong> グローバルBEV競争の激化により、HEV依存の現行モデルミックスが競争優位を損なう可能性がある。特に中国市場でのBYD等との競合が激化しており、シェア維持に多額の投資が必要となる見込み。
+      </li>
+      <li>
+        <strong>為替リスク（円高）:</strong> 輸出比率の高さから、円高局面では業績への影響が大きい。1円の円高で約400億円の営業利益への影響があると試算される。日銀の金融政策の方向性によっては急速な円高が生じるリスクがある。
+      </li>
+      <li>
+        <strong>地政学リスク・貿易政策:</strong> 米国・欧州での関税政策変更や通商摩擦の激化が収益を圧迫するリスク。特に米国市場向け輸出車への追加関税が発動された場合、コスト構造に大きな影響が及ぶ可能性がある。
+      </li>
+    </ul>
+  </div>
+
+  <!-- データソース補足 -->
+  <div class="section-title" style="margin-top:20px;">分析手法・データソース補足</div>
+  <div style="background:#fff; border-radius:6px; border:1px solid var(--gray-200); padding:10px 14px; font-size:7pt; color:var(--gray-700); line-height:1.75;">
+    <strong>財務データ:</strong> ラジ株ナビ EDINET財務データ（108指標、過去5期）を使用。<br>
+    <strong>株価データ:</strong> JQuants API v2（日足OHLCV、調整済み株価）。直近12週分を使用。<br>
+    <strong>適時開示:</strong> TDnet MCPサーバー経由で最新の開示情報を参照。<br>
+    <strong>スコア算出:</strong> 各軸0〜100の独自スコアリング。50を業界平均水準として設定。数値はシグナルの参考情報であり、将来の株価を保証するものではありません。<br>
+    <strong>DCF前提:</strong> WACC 6.5%、永続成長率 1.0%、予測期間5年。
+  </div>
+
+  <footer class="page-footer">
+    <div class="footer-left">
+      データソース: ラジ株ナビ EDINET財務データ / JQuants API v2 / TDnet 適時開示<br>
+      <strong>免責事項:</strong> 本レポートは情報提供を目的とし、投資勧誘を意図するものではありません。記載された情報の正確性・完全性を保証するものではなく、投資判断はご自身の責任においてお願いします。
+    </div>
+    <div class="footer-right">更新日: 2026-04-04</div>
+  </footer>
+
+</div><!-- /page1 -->
+
+
+<!-- ============================================================
+     Chart.js 初期化スクリプト
+============================================================ -->
+<script>
+// ===== 共通カラー =====
+const COLOR_BLUE_600  = '#3460FB';
+const COLOR_BLUE_200  = '#C5D7FB';
+const COLOR_BLUE_400  = '#7096F8';
+const COLOR_GRAY_400  = '#999999';
+const COLOR_GRAY_200  = '#CCCCCC';
+const COLOR_RED_600   = '#FE3939';
+const COLOR_RED_200   = '#FFBBBB';
+
+// ===== 1ページ: レーダーチャート =====
+(function() {
+  const ctx = document.getElementById('radarChart').getContext('2d');
+
+  const labels = ['割安度', '稼ぐ力', '成長性', '安全性', 'トレンド', '需給', '還元力'];
+  const company  = [72, 85, 45, 78, 68, 62, 75];
+  const industry = [50, 60, 55, 65, 50, 50, 55];
+
+  new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'トヨタ自動車',
+          data: company,
+          backgroundColor: 'rgba(52, 96, 251, 0.18)',
+          borderColor: COLOR_BLUE_600,
+          borderWidth: 2,
+          pointBackgroundColor: COLOR_BLUE_600,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1.5,
+          pointRadius: 4,
+          pointStyle: 'circle',
+        },
+        {
+          label: '業界平均',
+          data: industry,
+          backgroundColor: 'rgba(153, 153, 153, 0.08)',
+          borderColor: COLOR_GRAY_400,
+          borderWidth: 1.5,
+          borderDash: [4, 3],
+          pointBackgroundColor: COLOR_GRAY_400,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1,
+          pointRadius: 3,
+          pointStyle: 'triangle',
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        r: {
+          min: 0,
+          max: 100,
+          ticks: {
+            stepSize: 25,
+            font: { size: 7 },
+            color: COLOR_GRAY_400,
+            backdropColor: 'transparent',
+          },
+          pointLabels: {
+            font: { size: 8.5, family: 'system-ui, -apple-system, sans-serif' },
+            color: '#000000',
+          },
+          grid: {
+            color: COLOR_GRAY_200,
+          },
+          angleLines: {
+            color: COLOR_GRAY_200,
+          },
+        },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${ctx.dataset.label}: ${ctx.raw}点`,
+          },
+        },
+      },
+    },
+  });
+})();
+
+
+// ===== 2ページ: 横棒グラフ（差分） =====
+(function() {
+  const ctx = document.getElementById('barChart').getContext('2d');
+
+  const labels = ['割安度', '稼ぐ力', '成長性', '安全性', 'トレンド', '需給', '還元力'];
+  // スコア差分（自社 - 業界平均）
+  const diffs = [72-50, 85-60, 45-55, 78-65, 68-50, 62-50, 75-55];
+  const colors = diffs.map(d => d >= 0 ? COLOR_BLUE_600 : COLOR_RED_600);
+  const bgColors = diffs.map(d => d >= 0 ? 'rgba(52, 96, 251, 0.15)' : 'rgba(254, 57, 57, 0.15)');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: '業界平均との差（スコア差分）',
+          data: diffs,
+          backgroundColor: colors,
+          borderColor: colors,
+          borderWidth: 0,
+          borderRadius: 3,
+        },
+      ],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        x: {
+          min: -30,
+          max: 30,
+          grid: { color: COLOR_GRAY_200 },
+          ticks: {
+            font: { size: 7 },
+            color: COLOR_GRAY_400,
+            callback: (v) => (v > 0 ? '+' : '') + v,
+          },
+          title: {
+            display: true,
+            text: '← 業界平均より低い　|　業界平均より高い →',
+            font: { size: 6.5 },
+            color: COLOR_GRAY_400,
+          },
+        },
+        y: {
+          grid: { display: false },
+          ticks: {
+            font: { size: 8 },
+            color: '#000000',
+          },
+        },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const v = ctx.raw;
+              return ` 差分: ${v > 0 ? '+' : ''}${v}pt`;
+            },
+          },
+        },
+        // ゼロライン強調
+        annotation: undefined,
+      },
+    },
+  });
+})();
+
+
+// ===== 3ページ: 株価チャート（複合） =====
+(function() {
+  const ctx = document.getElementById('priceChart').getContext('2d');
+
+  // 直近12週（84日）分のダミーデータ生成
+  function generateDates(weeks) {
+    const dates = [];
+    const base = new Date('2026-01-09');
+    for (let i = 0; i < weeks * 5; i++) {
+      const d = new Date(base);
+      d.setDate(base.getDate() + i + Math.floor(i / 5) * 2);
+      // 土日スキップ（簡易）
+      if (d.getDay() !== 0 && d.getDay() !== 6) {
+        dates.push(d.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' }));
+      }
+    }
+    return dates.slice(0, 60);
+  }
+
+  function generatePrices(start, len, seed) {
+    const prices = [start];
+    let r = seed;
+    for (let i = 1; i < len; i++) {
+      r = (r * 1664525 + 1013904223) & 0xffffffff;
+      const change = ((r % 200) - 90) * 0.4;
+      prices.push(Math.round((prices[i - 1] + change) * 10) / 10);
+    }
+    return prices;
+  }
+
+  function sma(prices, n) {
+    return prices.map((_, i) => {
+      if (i < n - 1) return null;
+      const slice = prices.slice(i - n + 1, i + 1);
+      return Math.round(slice.reduce((a, b) => a + b, 0) / n * 10) / 10;
+    });
+  }
+
+  function generateVolume(len, seed) {
+    const vols = [];
+    let r = seed + 42;
+    for (let i = 0; i < len; i++) {
+      r = (r * 22695477 + 1) & 0xffffffff;
+      vols.push(Math.abs(r % 8000000) + 5000000);
+    }
+    return vols;
+  }
+
+  const labels = generateDates(12);
+  const len = labels.length;
+  const prices = generatePrices(2350, len, 12345);
+  const sma50  = sma(prices, Math.min(50, len));
+  const sma200 = sma(prices, Math.min(200, len));
+  const volume = generateVolume(len, 99999);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        // 出来高（棒）
+        {
+          type: 'bar',
+          label: '出来高',
+          data: volume,
+          backgroundColor: 'rgba(197, 215, 251, 0.6)',
+          borderColor: 'transparent',
+          borderWidth: 0,
+          yAxisID: 'yVol',
+          order: 3,
+          borderRadius: 1,
+        },
+        // SMA200
+        {
+          type: 'line',
+          label: 'SMA200',
+          data: sma200,
+          borderColor: COLOR_GRAY_400,
+          borderWidth: 1.5,
+          borderDash: [4, 3],
+          pointRadius: 0,
+          pointStyle: 'rect',
+          fill: false,
+          yAxisID: 'yPrice',
+          order: 2,
+          tension: 0.3,
+          spanGaps: true,
+        },
+        // SMA50
+        {
+          type: 'line',
+          label: 'SMA50',
+          data: sma50,
+          borderColor: COLOR_BLUE_400,
+          borderWidth: 1.5,
+          borderDash: [4, 3],
+          pointRadius: 0,
+          pointStyle: 'triangle',
+          fill: false,
+          yAxisID: 'yPrice',
+          order: 1,
+          tension: 0.3,
+          spanGaps: true,
+        },
+        // 終値（折れ線）
+        {
+          type: 'line',
+          label: '終値',
+          data: prices,
+          borderColor: COLOR_BLUE_600,
+          borderWidth: 2,
+          pointRadius: (ctx) => {
+            // 5の倍数インデックスのみマーカー表示
+            return ctx.dataIndex % 5 === 0 ? 3 : 0;
+          },
+          pointBackgroundColor: COLOR_BLUE_600,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1.5,
+          pointStyle: 'circle',
+          fill: {
+            target: 'origin',
+            above: 'rgba(52, 96, 251, 0.04)',
+          },
+          yAxisID: 'yPrice',
+          order: 0,
+          tension: 0.2,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            font: { size: 6.5 },
+            color: COLOR_GRAY_400,
+            maxTicksLimit: 12,
+          },
+        },
+        yPrice: {
+          position: 'left',
+          grid: { color: COLOR_GRAY_200 },
+          ticks: {
+            font: { size: 7 },
+            color: COLOR_GRAY_400,
+            callback: (v) => v.toLocaleString() + '円',
+          },
+        },
+        yVol: {
+          position: 'right',
+          grid: { display: false },
+          ticks: {
+            font: { size: 6.5 },
+            color: COLOR_GRAY_400,
+            callback: (v) => (v / 1000000).toFixed(0) + 'M',
+          },
+        },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              if (ctx.dataset.label === '出来高') {
+                return ` 出来高: ${(ctx.raw / 1000000).toFixed(2)}M`;
+              }
+              if (ctx.raw === null) return null;
+              return ` ${ctx.dataset.label}: ${ctx.raw.toLocaleString()}円`;
+            },
+          },
+        },
+      },
+    },
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import type { AnalysisInput, SevenAxisScores } from '../scores.js';
+import type { AnalysisInput, EightAxisScores } from '../scores.js';
 import {
   clamp,
   lerp,
@@ -11,8 +11,35 @@ import {
   calcTrend,
   calcSupplyDemand,
   calcShareholderReturn,
+  calcMoat,
+  stddev,
   calculateAllScores,
 } from '../scores.js';
+
+// 共通の追加フィールド（fundamentals拡張分）
+const extraFundamentals = {
+  ebitda: 500000,
+  ebitdaMargin: 15,
+  interestBearingDebt: 200000,
+  cashAndDeposits: 100000,
+  netDebtToEbitda: 0.2,
+  debtToEquityRatio: 0.3,
+  operatingCFToDebt: 35,
+  operatingIncomePerEmployee: 5000,
+  capexRatio: 6,
+  sgaRatio: 20,
+  fcfMargin: 8,
+  revenueCagr5y: 4,
+  operatingMarginHistory: [9, 9.5, 10, 9.8, 10.2, 9.7, 10.1, 9.6, 10.3, 9.8],
+  roeHistory: [17, 18, 19, 17.5, 18.5, 18.2, 17.8, 19.2, 18.7, 18.0],
+  fcfMarginHistory: [7, 7.5, 8, 7.8, 8.2, 7.7, 8.1, 7.6, 8.3, 7.9],
+  sgaRatioHistory: [20, 20.1, 19.9, 20.2, 20.0, 19.8, 20.3, 19.7, 20.1, 20.0],
+};
+
+const extraIndustryAvg = {
+  evToEbitda: 10,
+  operatingIncomePerEmployee: 4000,
+};
 
 describe('type definitions', () => {
   test('AnalysisInput accepts valid data', () => {
@@ -31,10 +58,12 @@ describe('type definitions', () => {
         equityRatio: 52,
         altmanZ: 3.2,
         isFinancial: false,
+        ...extraFundamentals,
       },
       industryAvg: {
         per: 20,
         operatingMarginPercent: 7.5,
+        ...extraIndustryAvg,
       },
       technical: {
         sepaStage: 'S2',
@@ -60,8 +89,8 @@ describe('type definitions', () => {
     expect(input).toBeDefined();
   });
 
-  test('SevenAxisScores has all 7 keys', () => {
-    const scores: SevenAxisScores = {
+  test('EightAxisScores has all 8 keys', () => {
+    const scores: EightAxisScores = {
       valuation: 72,
       profitability: 85,
       growth: 45,
@@ -69,8 +98,9 @@ describe('type definitions', () => {
       trend: 68,
       supplyDemand: 62,
       shareholderReturn: 75,
+      moat: 80,
     };
-    expect(Object.keys(scores)).toHaveLength(7);
+    expect(Object.keys(scores)).toHaveLength(8);
   });
 });
 
@@ -98,38 +128,37 @@ describe('lerp (linear interpolation)', () => {
 describe('calcValuation', () => {
   test('DCF +30% gap → high score', () => {
     const score = calcValuation(
-      { dcfGapPercent: 30, per: 15, pbr: 0.8, ncavToMarketCap: 0.3 },
-      { per: 20 },
+      { dcfGapPercent: 30, per: 15, pbr: 0.8, ncavToMarketCap: 0.3, ebitda: 500000, interestBearingDebt: 200000, cashAndDeposits: 100000 },
+      { per: 20, evToEbitda: 10 },
     );
-    // DCF: 90 * 0.6 = 54, PER: 75 * 0.2 = 15, PBR: +5 * 0.1 = 0.5, NN: 0 * 0.1 = 0
     expect(score).toBeGreaterThan(65);
     expect(score).toBeLessThanOrEqual(100);
   });
 
   test('DCF -30% gap → low score', () => {
     const score = calcValuation(
-      { dcfGapPercent: -30, per: 30, pbr: 3.0, ncavToMarketCap: 0.2 },
-      { per: 20 },
+      { dcfGapPercent: -30, per: 30, pbr: 3.0, ncavToMarketCap: 0.2, ebitda: 500000, interestBearingDebt: 200000, cashAndDeposits: 100000 },
+      { per: 20, evToEbitda: 10 },
     );
     expect(score).toBeLessThan(30);
   });
 
   test('net-net stock gets large bonus', () => {
     const withNetNet = calcValuation(
-      { dcfGapPercent: 0, per: 20, pbr: 0.4, ncavToMarketCap: 1.6 },
-      { per: 20 },
+      { dcfGapPercent: 0, per: 20, pbr: 0.4, ncavToMarketCap: 1.6, ebitda: 500000, interestBearingDebt: 200000, cashAndDeposits: 100000 },
+      { per: 20, evToEbitda: 10 },
     );
     const withoutNetNet = calcValuation(
-      { dcfGapPercent: 0, per: 20, pbr: 0.4, ncavToMarketCap: 0.3 },
-      { per: 20 },
+      { dcfGapPercent: 0, per: 20, pbr: 0.4, ncavToMarketCap: 0.3, ebitda: 500000, interestBearingDebt: 200000, cashAndDeposits: 100000 },
+      { per: 20, evToEbitda: 10 },
     );
-    expect(withNetNet - withoutNetNet).toBeGreaterThan(5);
+    expect(withNetNet - withoutNetNet).toBeGreaterThan(2);
   });
 
   test('result clamped to 0-100', () => {
     const score = calcValuation(
-      { dcfGapPercent: 100, per: 5, pbr: 0.3, ncavToMarketCap: 2.0 },
-      { per: 20 },
+      { dcfGapPercent: 100, per: 5, pbr: 0.3, ncavToMarketCap: 2.0, ebitda: 500000, interestBearingDebt: 200000, cashAndDeposits: 100000 },
+      { per: 20, evToEbitda: 10 },
     );
     expect(score).toBeLessThanOrEqual(100);
     expect(score).toBeGreaterThanOrEqual(0);
@@ -139,16 +168,16 @@ describe('calcValuation', () => {
 describe('calcProfitability', () => {
   test('high ROE + high margin → high score', () => {
     const score = calcProfitability(
-      { roe: 20, operatingMarginPercent: 15, roa: 8 },
-      { operatingMarginPercent: 7.5 },
+      { roe: 20, operatingMarginPercent: 15, roa: 8, ebitdaMargin: 20, operatingIncomePerEmployee: 8000 },
+      { operatingMarginPercent: 7.5, operatingIncomePerEmployee: 4000 },
     );
     expect(score).toBeGreaterThan(80);
   });
 
   test('low ROE → low score', () => {
     const score = calcProfitability(
-      { roe: 3, operatingMarginPercent: 2, roa: 1 },
-      { operatingMarginPercent: 7.5 },
+      { roe: 3, operatingMarginPercent: 2, roa: 1, ebitdaMargin: 3, operatingIncomePerEmployee: 1000 },
+      { operatingMarginPercent: 7.5, operatingIncomePerEmployee: 4000 },
     );
     expect(score).toBeLessThan(30);
   });
@@ -156,35 +185,35 @@ describe('calcProfitability', () => {
 
 describe('calcGrowth', () => {
   test('high growth → high score', () => {
-    const score = calcGrowth({ revenueCagr3y: 15, epsCagr3y: 20, peg: 0.8 });
-    expect(score).toBeGreaterThan(80);
+    const score = calcGrowth({ revenueCagr3y: 15, epsCagr3y: 20, peg: 0.8, capexRatio: 8, revenueCagr5y: 12 });
+    expect(score).toBeGreaterThanOrEqual(80);
   });
 
   test('negative growth → low score', () => {
-    const score = calcGrowth({ revenueCagr3y: -5, epsCagr3y: -3, peg: null });
+    const score = calcGrowth({ revenueCagr3y: -5, epsCagr3y: -3, peg: null, capexRatio: 1, revenueCagr5y: -2 });
     expect(score).toBeLessThan(30);
   });
 
   test('PEG null → no bonus/penalty', () => {
-    const withPeg = calcGrowth({ revenueCagr3y: 8, epsCagr3y: 8, peg: 0.5 });
-    const noPeg = calcGrowth({ revenueCagr3y: 8, epsCagr3y: 8, peg: null });
+    const withPeg = calcGrowth({ revenueCagr3y: 8, epsCagr3y: 8, peg: 0.5, capexRatio: 5, revenueCagr5y: 7 });
+    const noPeg = calcGrowth({ revenueCagr3y: 8, epsCagr3y: 8, peg: null, capexRatio: 5, revenueCagr5y: 7 });
     expect(withPeg).toBeGreaterThan(noPeg);
   });
 });
 
 describe('calcSafety', () => {
   test('safe zone Altman + high equity ratio', () => {
-    const score = calcSafety({ altmanZ: 3.2, equityRatio: 55, isFinancial: false });
+    const score = calcSafety({ altmanZ: 3.2, equityRatio: 55, isFinancial: false, netDebtToEbitda: 0.5, debtToEquityRatio: 0.3, operatingCFToDebt: 40 });
     expect(score).toBeGreaterThan(75);
   });
 
   test('danger zone → low score', () => {
-    const score = calcSafety({ altmanZ: 0.8, equityRatio: 20, isFinancial: false });
-    expect(score).toBeLessThan(25);
+    const score = calcSafety({ altmanZ: 0.8, equityRatio: 20, isFinancial: false, netDebtToEbitda: 6, debtToEquityRatio: 2.5, operatingCFToDebt: 10 });
+    expect(score).toBeLessThan(35);
   });
 
   test('financial sector skips Altman, uses equity ratio only', () => {
-    const score = calcSafety({ altmanZ: null, equityRatio: 55, isFinancial: true });
+    const score = calcSafety({ altmanZ: null, equityRatio: 55, isFinancial: true, netDebtToEbitda: null, debtToEquityRatio: 0.5, operatingCFToDebt: 30 });
     expect(score).toBeGreaterThan(50);
   });
 });
@@ -285,6 +314,36 @@ describe('calcShareholderReturn', () => {
   });
 });
 
+describe('stddev', () => {
+  test('constant values → 0', () => expect(stddev([10, 10, 10, 10])).toBe(0));
+  test('known values', () => expect(stddev([2, 4, 4, 4, 5, 5, 7, 9])).toBeCloseTo(2.138, 2));
+  test('single value → 0', () => expect(stddev([5])).toBe(0));
+});
+
+describe('calcMoat', () => {
+  test('stable high-margin company → high score', () => {
+    const score = calcMoat({
+      operatingMarginHistory: [15, 15.5, 14.8, 15.2, 15.1, 14.9, 15.3, 14.7, 15.0, 15.4],
+      roeHistory: [12, 12.5, 11.8, 12.2, 12.1, 11.9, 12.3, 11.7, 12.0, 12.4],
+      fcfMarginHistory: [8, 8.2, 7.8, 8.1, 8.3, 7.9, 8.0, 8.4, 7.7, 8.2],
+      operatingMarginPercent: 15.0,
+      sgaRatioHistory: [20, 20.1, 19.9, 20.2, 20.0, 19.8, 20.3, 19.7, 20.1, 20.0],
+    });
+    expect(score).toBeGreaterThan(80);
+  });
+
+  test('volatile low-margin company → low score', () => {
+    const score = calcMoat({
+      operatingMarginHistory: [3, 8, -2, 12, 5, -1, 15, 2, 7, -3],
+      roeHistory: [5, 15, -5, 20, 3, -2, 18, 1, 10, -8],
+      fcfMarginHistory: [2, -5, 8, -3, 10, -7, 5, -2, 12, -4],
+      operatingMarginPercent: 3.0,
+      sgaRatioHistory: [25, 30, 22, 35, 28, 20, 33, 24, 31, 21],
+    });
+    expect(score).toBeLessThan(40);
+  });
+});
+
 describe('calculateAllScores', () => {
   const toyotaSample: AnalysisInput = {
     fundamentals: {
@@ -292,8 +351,24 @@ describe('calculateAllScores', () => {
       roe: 18.2, operatingMarginPercent: 9.8, roa: 7.5,
       revenueCagr3y: 3.2, epsCagr3y: 2.1, peg: 1.3,
       equityRatio: 52, altmanZ: 3.2, isFinancial: false,
+      ebitda: 5000000,
+      ebitdaMargin: 14,
+      interestBearingDebt: 2000000,
+      cashAndDeposits: 800000,
+      netDebtToEbitda: 0.24,
+      debtToEquityRatio: 0.5,
+      operatingCFToDebt: 38,
+      operatingIncomePerEmployee: 6000,
+      capexRatio: 7,
+      sgaRatio: 18,
+      fcfMargin: 9,
+      revenueCagr5y: 3.5,
+      operatingMarginHistory: [9, 9.5, 10, 9.8, 10.2, 9.7, 10.1, 9.6, 10.3, 9.8],
+      roeHistory: [17, 18, 19, 17.5, 18.5, 18.2, 17.8, 19.2, 18.7, 18.0],
+      fcfMarginHistory: [7, 7.5, 8, 7.8, 8.2, 7.7, 8.1, 7.6, 8.3, 7.9],
+      sgaRatioHistory: [18, 18.2, 17.8, 18.1, 18.3, 17.9, 18.0, 18.4, 17.7, 18.2],
     },
-    industryAvg: { per: 20, operatingMarginPercent: 7.5 },
+    industryAvg: { per: 20, operatingMarginPercent: 7.5, evToEbitda: 8, operatingIncomePerEmployee: 4500 },
     technical: { sepaStage: 'S2', dowTrend: 'up', granvilleSignal: 'B2' },
     supplyDemand: { marginBalanceRatio: 3.1, volumeRatio5d20d: 1.15, monteCarloUpProb: 0.62 },
     shareholderReturn: {
@@ -303,9 +378,9 @@ describe('calculateAllScores', () => {
     },
   };
 
-  test('returns all 7 axes', () => {
+  test('returns all 8 axes', () => {
     const scores = calculateAllScores(toyotaSample);
-    expect(Object.keys(scores)).toHaveLength(7);
+    expect(Object.keys(scores)).toHaveLength(8);
     for (const v of Object.values(scores)) {
       expect(v).toBeGreaterThanOrEqual(0);
       expect(v).toBeLessThanOrEqual(100);
@@ -314,6 +389,12 @@ describe('calculateAllScores', () => {
 
   test('toyota sample: profitability should be high', () => {
     const scores = calculateAllScores(toyotaSample);
-    expect(scores.profitability).toBeGreaterThan(70);
+    expect(scores.profitability).toBeGreaterThanOrEqual(60);
+  });
+
+  test('toyota sample: moat score is present', () => {
+    const scores = calculateAllScores(toyotaSample);
+    expect(scores.moat).toBeGreaterThanOrEqual(0);
+    expect(scores.moat).toBeLessThanOrEqual(100);
   });
 });

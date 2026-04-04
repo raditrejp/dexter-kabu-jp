@@ -656,6 +656,18 @@ const industryAvg = {{industryAvgJson}};
 const priceData = {{priceDataJson}};
 const hasSma200 = {{hasSma200}};
 
+// ===== 日本語ラベルマッピング =====
+const AXIS_LABELS = {
+  valuation: '割安度',
+  profitability: '稼ぐ力',
+  growth: '成長性',
+  safety: '安全性',
+  trend: 'トレンド',
+  supplyDemand: '需給',
+  shareholderReturn: '還元力',
+  moat: '事業独占力',
+};
+
 // ===== スコアカードの動的レンダリング =====
 (function() {
   const axisKeys = Object.keys(scores);
@@ -665,7 +677,7 @@ const hasSma200 = {{hasSma200}};
     const avg = industryAvg[axis] || 50;
     const cls = score >= avg ? 'above' : 'below';
     return '<div class="score-card">' +
-      '<span class="axis-label">' + axis + '</span>' +
+      '<span class="axis-label">' + (AXIS_LABELS[axis] || axis) + '</span>' +
       '<span class="score-num ' + cls + '">' + score + '</span>' +
       '<div class="score-bar-bg">' +
         '<div class="score-bar-fill ' + cls + '" style="width:' + score + '%"></div>' +
@@ -687,9 +699,10 @@ const hasSma200 = {{hasSma200}};
 (function() {
   const ctx = document.getElementById('radarChart').getContext('2d');
 
-  const labels = Object.keys(scores);
+  const axisKeysRadar = Object.keys(scores);
+  const labels = axisKeysRadar.map(function(k) { return AXIS_LABELS[k] || k; });
   const company  = Object.values(scores);
-  const industry = labels.map(function(k) { return industryAvg[k] || 50; });
+  const industry = axisKeysRadar.map(function(k) { return industryAvg[k] || 50; });
 
   new Chart(ctx, {
     type: 'radar',
@@ -765,9 +778,10 @@ const hasSma200 = {{hasSma200}};
 (function() {
   const ctx = document.getElementById('barChart').getContext('2d');
 
-  const labels = Object.keys(scores);
+  const barKeys = Object.keys(scores);
+  const labels = barKeys.map(function(k) { return AXIS_LABELS[k] || k; });
   // スコア差分（自社 - 業界平均）
-  const diffs = labels.map(function(k) { return scores[k] - (industryAvg[k] || 50); });
+  const diffs = barKeys.map(function(k) { return scores[k] - (industryAvg[k] || 50); });
   const colors = diffs.map(d => d >= 0 ? COLOR_BLUE_600 : COLOR_RED_600);
 
   new Chart(ctx, {

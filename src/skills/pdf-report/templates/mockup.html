@@ -260,10 +260,10 @@
       color: var(--gray-700);
     }
 
-    /* ===== 7軸スコアカード（1ページ下部） ===== */
+    /* ===== 8軸スコアカード（1ページ下部） ===== */
     .score-cards {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      grid-template-columns: repeat(8, 1fr);
       gap: 6px;
     }
 
@@ -391,7 +391,7 @@
       color: var(--text-primary);
     }
 
-    /* 1軸だけ残り（7つ目）を全幅に */
+    /* 8軸目（偶数）は自然に収まるため full-width は不要。既存クラスは互換のため残す */
     .detail-card.full-width {
       grid-column: 1 / -1;
     }
@@ -543,7 +543,7 @@
 
     <!-- レーダーチャート -->
     <div class="radar-wrap">
-      <div class="chart-title">7軸スコア — レーダーチャート</div>
+      <div class="chart-title">8軸スコア — レーダーチャート</div>
       <canvas id="radarChart" style="max-height: 200px;"></canvas>
       <div class="chart-legend">
         <div class="legend-item">
@@ -583,8 +583,8 @@
     </div>
   </div>
 
-  <!-- 7軸スコアカード -->
-  <div class="section-title">7軸スコア一覧</div>
+  <!-- 8軸スコアカード -->
+  <div class="section-title">8軸スコア一覧</div>
   <div class="score-cards">
 
     <div class="score-card">
@@ -646,6 +646,15 @@
       <span class="score-num above">75</span>
       <div class="score-bar-bg">
         <div class="score-bar-fill above" style="width:75%"></div>
+      </div>
+      <span class="avg-label">業界平均 55</span>
+    </div>
+
+    <div class="score-card">
+      <span class="axis-label">事業独占力</span>
+      <span class="score-num above">70</span>
+      <div class="score-bar-bg">
+        <div class="score-bar-fill above" style="width:70%"></div>
       </div>
       <span class="avg-label">業界平均 55</span>
     </div>
@@ -760,8 +769,8 @@
       </div>
     </div>
 
-    <!-- 還元力（全幅） -->
-    <div class="detail-card full-width">
+    <!-- 還元力 -->
+    <div class="detail-card">
       <div class="detail-card-header">
         <span class="detail-axis-name">還元力</span>
         <span class="detail-score-badge above">75 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
@@ -773,6 +782,21 @@
       <div class="detail-evidence">
         配当利回り <strong>2.8%</strong>、増配率トレンド: 年平均 <strong>+8%（加速傾向）</strong>、配当性向 <strong>32%</strong>（余裕あり）。
         自社株買いを継続実施し、総還元利回りは業界平均を大幅に上回る。過去10年以上の増配継続実績を持ち、株主還元の信頼性が高い。
+      </div>
+    </div>
+
+    <!-- 事業独占力 -->
+    <div class="detail-card">
+      <div class="detail-card-header">
+        <span class="detail-axis-name">事業独占力</span>
+        <span class="detail-score-badge above">70 <small style="font-size:7pt;font-weight:400;color:var(--text-label)">/100</small></span>
+      </div>
+      <div class="detail-progress-bg">
+        <div class="detail-progress-fill above" style="width:70%"></div>
+        <div class="detail-avg-marker" style="left:55%"></div>
+      </div>
+      <div class="detail-evidence">
+        営業利益率σ: <strong>1.8%</strong>（過去10年で安定）。ROEσ: <strong>2.3%</strong>（安定）。FCFマージンσ: <strong>3.1%</strong>（やや変動）。営業利益率水準: <strong>10.0%</strong>（良好）。
       </div>
     </div>
 
@@ -863,9 +887,9 @@ const COLOR_RED_200   = '#FFBBBB';
 (function() {
   const ctx = document.getElementById('radarChart').getContext('2d');
 
-  const labels = ['割安度', '稼ぐ力', '成長性', '安全性', 'トレンド', '需給', '還元力'];
-  const company  = [72, 85, 45, 78, 68, 62, 75];
-  const industry = [50, 60, 55, 65, 50, 50, 55];
+  const labels = ['割安度', '稼ぐ力', '成長性', '安全性', 'トレンド', '需給', '還元力', '事業独占力'];
+  const company  = [72, 85, 45, 78, 68, 62, 75, 70];
+  const industry = [50, 60, 55, 65, 50, 50, 55, 55];
 
   new Chart(ctx, {
     type: 'radar',
@@ -941,9 +965,9 @@ const COLOR_RED_200   = '#FFBBBB';
 (function() {
   const ctx = document.getElementById('barChart').getContext('2d');
 
-  const labels = ['割安度', '稼ぐ力', '成長性', '安全性', 'トレンド', '需給', '還元力'];
+  const labels = ['割安度', '稼ぐ力', '成長性', '安全性', 'トレンド', '需給', '還元力', '事業独占力'];
   // スコア差分（自社 - 業界平均）
-  const diffs = [72-50, 85-60, 45-55, 78-65, 68-50, 62-50, 75-55];
+  const diffs = [72-50, 85-60, 45-55, 78-65, 68-50, 62-50, 75-55, 70-55];
   const colors = diffs.map(d => d >= 0 ? COLOR_BLUE_600 : COLOR_RED_600);
   const bgColors = diffs.map(d => d >= 0 ? 'rgba(52, 96, 251, 0.15)' : 'rgba(254, 57, 57, 0.15)');
 

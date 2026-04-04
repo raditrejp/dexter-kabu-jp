@@ -53,6 +53,7 @@
 | 「同業他社と比較して」 | `src/skills/peer-comparison/SKILL.md` |
 | 「決算はいつ？」 | `src/skills/earnings-calendar/SKILL.md` |
 | 「スクリーニングして」 | `src/skills/screening/SKILL.md` |
+| 「レポート出して」「PDF出して」 | `src/skills/pdf-report/SKILL.md` |
 
 ### スクリーニング
 

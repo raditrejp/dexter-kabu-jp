@@ -56,5 +56,6 @@ yarn-error.log*
 .dexter/*
 
 
+output/
 logs/
 coverage.json

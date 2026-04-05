@@ -30,10 +30,11 @@ export async function generateReport(input: ReportInput): Promise<string> {
   const templatePath = resolve(dirname(new URL(import.meta.url).pathname), 'templates', 'report.html');
   let html = readFileSync(templatePath, 'utf-8');
 
-  const hasJQuants = input.hasJQuants !== false;
-  const priceData = input.priceData ?? [];
   const plan = process.env.JQUANTS_PLAN ?? 'free';
-  const hasSma200 = plan !== 'free' && priceData.some(d => d.sma200 !== undefined);
+  // Light以上でないとリアルタイム株価データが取得できない（Freeは12週遅れ）
+  const hasJQuants = input.hasJQuants !== false && plan !== 'free';
+  const priceData = hasJQuants ? (input.priceData ?? []) : [];
+  const hasSma200 = hasJQuants && priceData.some(d => d.sma200 !== undefined);
 
   // Replace all occurrences for placeholders that appear multiple times in the template
   html = html

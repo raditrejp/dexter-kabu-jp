@@ -58,8 +58,12 @@ export async function generateReport(input: ReportInput): Promise<string> {
   const page = await browser.newPage();
   await page.setContent(html, { waitUntil: 'load' });
   await page.waitForFunction(() => typeof (window as any).Chart !== 'undefined', { timeout: 15000 });
-  // Wait for charts to render
-  await page.waitForTimeout(1000);
+  // Wait for score cards and charts to render
+  await page.waitForFunction(() => {
+    const cards = document.getElementById('scoreCards');
+    return cards && cards.children.length >= 8;
+  }, { timeout: 10000 });
+  await page.waitForTimeout(2000);
   await page.pdf({ path: outputPath, format: 'A4', printBackground: true });
   await browser.close();
 

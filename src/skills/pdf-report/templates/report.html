@@ -321,22 +321,22 @@
     .detail-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 6px;
+      margin-bottom: 8px;
     }
 
     .detail-card {
       background: #fff;
       border-radius: 6px;
       border: 1px solid var(--gray-200);
-      padding: 10px 12px;
+      padding: 9px 12px;
     }
 
     .detail-card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
 
     .detail-axis-name {
@@ -360,7 +360,7 @@
       background: var(--gray-50);
       border-radius: 3px;
       overflow: hidden;
-      margin-bottom: 7px;
+      margin-bottom: 5px;
       position: relative;
     }
 
@@ -384,7 +384,7 @@
     .detail-evidence {
       font-size: 7pt;
       color: var(--gray-700);
-      line-height: 1.65;
+      line-height: 1.6;
     }
 
     .detail-evidence strong {
@@ -396,15 +396,7 @@
       grid-column: 1 / -1;
     }
 
-    /* ===== 2ページ: 横棒チャートコンテナ ===== */
-    .bar-chart-wrap {
-      background: #fff;
-      border-radius: 6px;
-      border: 1px solid var(--gray-200);
-      padding: 10px 14px;
-    }
-
-    /* ===== 3ページ: チャートコンテナ ===== */
+    /* ===== 2ページ: チャートコンテナ ===== */
     .price-chart-wrap {
       background: #fff;
       border-radius: 6px;
@@ -490,6 +482,23 @@
     /* ===== ユーティリティ ===== */
     .mt-8  { margin-top: 8px; }
     .mb-8  { margin-bottom: 8px; }
+
+    /* ===== 改ページ制御 ===== */
+    .section-title,
+    .detail-card,
+    .price-chart-wrap,
+    .risk-section,
+    .p1-grid,
+    .score-cards,
+    .bar-chart-wrap {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .section-title {
+      break-after: avoid;
+      page-break-after: avoid;
+    }
 
     /* ===== 印刷用 ===== */
     @media print {
@@ -577,13 +586,8 @@
     {{detailCards}}
   </div>
 
-  <!-- 横棒グラフ: 業界平均との差 -->
-  <div class="bar-chart-wrap">
-    <div class="chart-title">業界平均との差（スコア差分）— 原点: 業界平均</div>
-    <canvas id="barChart" style="max-height: 100px;"></canvas>
-  </div>
-
-  <!-- 株価チャート -->
+  <!-- 株価チャート（2ページ目から） -->
+  <div style="break-before: page; page-break-before: always;"></div>
   <div class="section-title" style="margin-top:20px;">株価チャート（直近12週 日足）</div>
   <div class="price-chart-wrap">
     <div class="chart-legend" style="justify-content:flex-start; gap:16px; margin-bottom:6px;">
@@ -629,7 +633,8 @@
   <footer class="page-footer">
     <div class="footer-left">
       データソース: ラジ株ナビ EDINET財務データ / JQuants API v2 / TDnet 適時開示<br>
-      <strong>免責事項:</strong> 本レポートは情報提供を目的とし、投資勧誘を意図するものではありません。記載された情報の正確性・完全性を保証するものではなく、投資判断はご自身の責任においてお願いします。
+      <strong>免責事項:</strong> 本レポートは情報提供を目的とし、投資勧誘を意図するものではありません。記載された情報の正確性・完全性を保証するものではなく、投資判断はご自身の責任においてお願いします。<br>
+      <strong>コメント生成:</strong> 各軸の根拠コメント・総合評価コメント・リスク要因はClaude AI（Anthropic）により生成されています。
     </div>
     <div class="footer-right">更新日: {{analysisDate}}</div>
   </footer>
@@ -768,77 +773,6 @@ const AXIS_LABELS = {
             label: (ctx) => ` ${ctx.dataset.label}: ${ctx.raw}点`,
           },
         },
-      },
-    },
-  });
-})();
-
-
-// ===== 横棒グラフ（差分） =====
-(function() {
-  const ctx = document.getElementById('barChart').getContext('2d');
-
-  const barKeys = Object.keys(scores);
-  const labels = barKeys.map(function(k) { return AXIS_LABELS[k] || k; });
-  // スコア差分（自社 - 業界平均）
-  const diffs = barKeys.map(function(k) { return scores[k] - (industryAvg[k] || 50); });
-  const colors = diffs.map(d => d >= 0 ? COLOR_BLUE_600 : COLOR_RED_600);
-
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: '業界平均との差（スコア差分）',
-          data: diffs,
-          backgroundColor: colors,
-          borderColor: colors,
-          borderWidth: 0,
-          borderRadius: 3,
-        },
-      ],
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: true,
-      scales: {
-        x: {
-          min: -30,
-          max: 30,
-          grid: { color: COLOR_GRAY_200 },
-          ticks: {
-            font: { size: 7 },
-            color: COLOR_GRAY_400,
-            callback: (v) => (v > 0 ? '+' : '') + v,
-          },
-          title: {
-            display: true,
-            text: '← 業界平均より低い　|　業界平均より高い →',
-            font: { size: 6.5 },
-            color: COLOR_GRAY_400,
-          },
-        },
-        y: {
-          grid: { display: false },
-          ticks: {
-            font: { size: 8 },
-            color: '#000000',
-          },
-        },
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => {
-              const v = ctx.raw;
-              return ` 差分: ${v > 0 ? '+' : ''}${v}pt`;
-            },
-          },
-        },
-        annotation: undefined,
       },
     },
   });

@@ -16,21 +16,24 @@ export interface ReportInput {
   details: Record<keyof EightAxisScores, string>;
   summary: string;
   risks: Array<{ title: string; description: string }>;
-  priceData: Array<{
+  priceData?: Array<{
     date: string;
     close: number;
     volume: number;
     sma50?: number;
     sma200?: number;
   }>;
+  hasJQuants?: boolean;        // デフォルトtrue。falseの場合はtrend/supplyDemand/株価チャートをグレーアウト
 }
 
 export async function generateReport(input: ReportInput): Promise<string> {
   const templatePath = resolve(dirname(new URL(import.meta.url).pathname), 'templates', 'report.html');
   let html = readFileSync(templatePath, 'utf-8');
 
+  const hasJQuants = input.hasJQuants !== false;
+  const priceData = input.priceData ?? [];
   const plan = process.env.JQUANTS_PLAN ?? 'free';
-  const hasSma200 = plan !== 'free' && input.priceData.some(d => d.sma200 !== undefined);
+  const hasSma200 = plan !== 'free' && priceData.some(d => d.sma200 !== undefined);
 
   // Replace all occurrences for placeholders that appear multiple times in the template
   html = html
@@ -44,10 +47,11 @@ export async function generateReport(input: ReportInput): Promise<string> {
     .replaceAll('{{scoresJson}}', JSON.stringify(input.scores))
     .replaceAll('{{industryAvgJson}}', JSON.stringify(input.industryAvg))
     .replaceAll('{{summaryComment}}', escapeHtml(input.summary))
-    .replaceAll('{{detailCards}}', buildDetailCards(input))
-    .replaceAll('{{priceDataJson}}', JSON.stringify(input.priceData))
+    .replaceAll('{{detailCards}}', buildDetailCards(input, hasJQuants))
+    .replaceAll('{{priceDataJson}}', JSON.stringify(priceData))
     .replaceAll('{{risksHtml}}', buildRisksHtml(input.risks))
-    .replaceAll('{{hasSma200}}', String(hasSma200));
+    .replaceAll('{{hasSma200}}', String(hasSma200))
+    .replaceAll('{{hasJQuants}}', String(hasJQuants));
 
   const outputDir = resolve(process.cwd(), 'output');
   if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true });
@@ -90,14 +94,19 @@ const AXIS_NAMES: Record<keyof EightAxisScores, string> = {
   moat: '事業独占力',
 };
 
-function buildDetailCards(input: ReportInput): string {
+const NO_JQUANTS_AXES: (keyof EightAxisScores)[] = ['trend', 'supplyDemand'];
+const NO_JQUANTS_MESSAGE = 'JQuants APIを無料登録すると、テクニカル分析（SEPA・ダウ理論・グランビル）と需給分析（信用倍率・出来高）が表示されます。https://jpx-jquants.com/';
+
+function buildDetailCards(input: ReportInput, hasJQuants: boolean): string {
   return (Object.keys(AXIS_NAMES) as (keyof EightAxisScores)[])
     .map((key) => {
+      const isDisabled = !hasJQuants && NO_JQUANTS_AXES.includes(key);
       const score = input.scores[key];
       const avg = input.industryAvg[key];
       const colorClass = score >= avg ? 'above' : 'below';
+      const evidenceText = isDisabled ? NO_JQUANTS_MESSAGE : input.details[key];
       return `
-        <div class="detail-card">
+        <div class="detail-card${isDisabled ? ' disabled' : ''}">
           <div class="detail-card-header">
             <span class="detail-axis-name">${AXIS_NAMES[key]}</span>
             <span class="detail-score-badge ${colorClass}">${score}</span>
@@ -106,7 +115,7 @@ function buildDetailCards(input: ReportInput): string {
             <div class="detail-progress-fill ${colorClass}" style="width: ${score}%"></div>
             <div class="detail-avg-marker" style="left: ${avg}%"></div>
           </div>
-          <div class="detail-evidence">${escapeHtml(input.details[key])}</div>
+          <div class="detail-evidence">${escapeHtml(evidenceText)}</div>
         </div>`;
     })
     .join('\n');

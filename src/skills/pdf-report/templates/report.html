@@ -483,6 +483,17 @@
     .mt-8  { margin-top: 8px; }
     .mb-8  { margin-bottom: 8px; }
 
+    /* ===== JQuants未登録フォールバック ===== */
+    .score-card.disabled {
+      opacity: 0.4;
+    }
+    .score-num.disabled {
+      color: var(--gray-400);
+    }
+    .detail-card.disabled {
+      opacity: 0.5;
+    }
+
     /* ===== 改ページ制御 ===== */
     .section-title,
     .detail-card,
@@ -588,27 +599,29 @@
 
   <!-- 株価チャート（2ページ目から） -->
   <div style="break-before: page; page-break-before: always;"></div>
-  <div class="section-title" style="margin-top:20px;">株価チャート（直近12週 日足）</div>
-  <div class="price-chart-wrap">
-    <div class="chart-legend" style="justify-content:flex-start; gap:16px; margin-bottom:6px;">
-      <div class="legend-item">
-        <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#3460FB" stroke-width="2"/><circle cx="10" cy="5" r="3" fill="#3460FB"/></svg>
-        終値
+  <div id="priceChartSection">
+    <div class="section-title" style="margin-top:20px;">株価チャート（直近12週 日足）</div>
+    <div class="price-chart-wrap">
+      <div class="chart-legend" style="justify-content:flex-start; gap:16px; margin-bottom:6px;">
+        <div class="legend-item">
+          <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#3460FB" stroke-width="2"/><circle cx="10" cy="5" r="3" fill="#3460FB"/></svg>
+          終値
+        </div>
+        <div class="legend-item">
+          <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#7096F8" stroke-width="1.5" stroke-dasharray="4,2"/></svg>
+          SMA50
+        </div>
+        <div class="legend-item" id="sma200Legend">
+          <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#999999" stroke-width="1.5" stroke-dasharray="4,2"/></svg>
+          SMA200
+        </div>
+        <div class="legend-item">
+          <svg width="12" height="10"><rect x="1" y="0" width="10" height="10" rx="2" fill="#C5D7FB"/></svg>
+          出来高
+        </div>
       </div>
-      <div class="legend-item">
-        <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#7096F8" stroke-width="1.5" stroke-dasharray="4,2"/></svg>
-        SMA50
-      </div>
-      <div class="legend-item" id="sma200Legend">
-        <svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" stroke="#999999" stroke-width="1.5" stroke-dasharray="4,2"/></svg>
-        SMA200
-      </div>
-      <div class="legend-item">
-        <svg width="12" height="10"><rect x="1" y="0" width="10" height="10" rx="2" fill="#C5D7FB"/></svg>
-        出来高
-      </div>
+      <canvas id="priceChart" style="max-height: 170px;"></canvas>
     </div>
-    <canvas id="priceChart" style="max-height: 170px;"></canvas>
   </div>
 
   <!-- リスク要因 -->
@@ -660,6 +673,7 @@ const scores = {{scoresJson}};
 const industryAvg = {{industryAvgJson}};
 const priceData = {{priceDataJson}};
 const hasSma200 = {{hasSma200}};
+const hasJQuants = {{hasJQuants}};
 
 // ===== 日本語ラベルマッピング =====
 const AXIS_LABELS = {
@@ -676,11 +690,21 @@ const AXIS_LABELS = {
 // ===== スコアカードの動的レンダリング =====
 (function() {
   const axisKeys = Object.keys(scores);
+  const noJQuantsAxes = ['trend', 'supplyDemand'];
   const container = document.getElementById('scoreCards');
   container.innerHTML = axisKeys.map(function(axis) {
     const score = scores[axis];
     const avg = industryAvg[axis] || 50;
     const cls = score >= avg ? 'above' : 'below';
+    const isDisabled = !hasJQuants && noJQuantsAxes.includes(axis);
+    if (isDisabled) {
+      return '<div class="score-card disabled">' +
+        '<span class="axis-label">' + (AXIS_LABELS[axis] || axis) + '</span>' +
+        '<span class="score-num disabled">—</span>' +
+        '<div class="score-bar-bg"><div class="score-bar-fill" style="width:0%"></div></div>' +
+        '<span class="avg-label" style="color:var(--gray-400)">JQuants未登録</span>' +
+      '</div>';
+    }
     return '<div class="score-card">' +
       '<span class="axis-label">' + (AXIS_LABELS[axis] || axis) + '</span>' +
       '<span class="score-num ' + cls + '">' + score + '</span>' +
@@ -700,14 +724,36 @@ const AXIS_LABELS = {
   }
 })();
 
+// ===== JQuants未登録: 株価チャートセクションを差し替え =====
+(function() {
+  if (!hasJQuants) {
+    document.getElementById('priceChartSection').innerHTML =
+      '<div style="text-align:center; padding:20px; color:#999; font-size:8pt;">' +
+      '株価チャートはJQuants API登録後に表示されます。<br>' +
+      '無料プランで利用可能: https://jpx-jquants.com/' +
+      '</div>';
+  }
+})();
+
 // ===== 1ページ: レーダーチャート =====
 (function() {
   const ctx = document.getElementById('radarChart').getContext('2d');
 
   const axisKeysRadar = Object.keys(scores);
+  const noJQuantsAxes = ['trend', 'supplyDemand'];
   const labels = axisKeysRadar.map(function(k) { return AXIS_LABELS[k] || k; });
-  const company  = Object.values(scores);
-  const industry = axisKeysRadar.map(function(k) { return industryAvg[k] || 50; });
+  const company  = axisKeysRadar.map(function(k) {
+    if (!hasJQuants && noJQuantsAxes.includes(k)) return null;
+    return scores[k];
+  });
+  const companyPointColors = axisKeysRadar.map(function(k) {
+    if (!hasJQuants && noJQuantsAxes.includes(k)) return '#CCCCCC';
+    return COLOR_BLUE_600;
+  });
+  const industry = axisKeysRadar.map(function(k) {
+    if (!hasJQuants && noJQuantsAxes.includes(k)) return null;
+    return industryAvg[k] || 50;
+  });
 
   new Chart(ctx, {
     type: 'radar',
@@ -720,11 +766,12 @@ const AXIS_LABELS = {
           backgroundColor: 'rgba(52, 96, 251, 0.18)',
           borderColor: COLOR_BLUE_600,
           borderWidth: 2,
-          pointBackgroundColor: COLOR_BLUE_600,
+          pointBackgroundColor: companyPointColors,
           pointBorderColor: '#fff',
           pointBorderWidth: 1.5,
           pointRadius: 4,
           pointStyle: 'circle',
+          spanGaps: false,
         },
         {
           label: '業界平均',
@@ -738,6 +785,7 @@ const AXIS_LABELS = {
           pointBorderWidth: 1,
           pointRadius: 3,
           pointStyle: 'triangle',
+          spanGaps: false,
         },
       ],
     },
@@ -781,6 +829,7 @@ const AXIS_LABELS = {
 
 // ===== 株価チャート（複合） =====
 (function() {
+  if (!hasJQuants) return;
   const ctx = document.getElementById('priceChart').getContext('2d');
 
   function sma(prices, n) {

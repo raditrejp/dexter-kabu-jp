@@ -54,4 +54,17 @@ describe('generateReport', () => {
     expect(existsSync(outputPath)).toBe(true);
     unlinkSync(outputPath);
   }, 30000);
+
+  test('generates PDF without JQuants data', async () => {
+    const noJQuantsInput: ReportInput = {
+      ...sampleInput,
+      hasJQuants: false,
+      priceData: [],
+      scores: { ...sampleInput.scores, trend: 0, supplyDemand: 0 },
+    };
+    const outputPath = await generateReport(noJQuantsInput);
+    expect(outputPath).toContain('7203_report_');
+    expect(existsSync(outputPath)).toBe(true);
+    unlinkSync(outputPath);
+  }, 30000);
 });

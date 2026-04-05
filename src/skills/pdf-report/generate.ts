@@ -31,8 +31,12 @@ export async function generateReport(input: ReportInput): Promise<string> {
   let html = readFileSync(templatePath, 'utf-8');
 
   const plan = process.env.JQUANTS_PLAN ?? 'free';
-  // Light以上でないとリアルタイム株価データが取得できない（Freeは12週遅れ）
-  const hasJQuants = input.hasJQuants !== false && plan !== 'free';
+  const planLevel = { free: 0, light: 1, standard: 2, premium: 3 }[plan] ?? 0;
+  // トレンド: Light以上（株価データが必要）
+  const hasTrend = input.hasJQuants !== false && planLevel >= 1;
+  // 需給: Standard以上 + 実データが必要（信用残取得ロジック未実装のため現在は常にfalse）
+  const hasSupplyDemand = false; // TODO: 信用残データ取得ロジック実装後に有効化
+  const hasJQuants = hasTrend; // 株価チャート表示もLight以上
   const priceData = hasJQuants ? (input.priceData ?? []) : [];
   const hasSma200 = hasJQuants && priceData.some(d => d.sma200 !== undefined);
 
@@ -48,11 +52,13 @@ export async function generateReport(input: ReportInput): Promise<string> {
     .replaceAll('{{scoresJson}}', JSON.stringify(input.scores))
     .replaceAll('{{industryAvgJson}}', JSON.stringify(input.industryAvg))
     .replaceAll('{{summaryComment}}', escapeHtml(input.summary))
-    .replaceAll('{{detailCards}}', buildDetailCards(input, hasJQuants))
+    .replaceAll('{{detailCards}}', buildDetailCards(input, hasTrend, hasSupplyDemand))
     .replaceAll('{{priceDataJson}}', JSON.stringify(priceData))
     .replaceAll('{{risksHtml}}', buildRisksHtml(input.risks))
     .replaceAll('{{hasSma200}}', String(hasSma200))
-    .replaceAll('{{hasJQuants}}', String(hasJQuants));
+    .replaceAll('{{hasJQuants}}', String(hasJQuants))
+    .replaceAll('{{hasTrend}}', String(hasTrend))
+    .replaceAll('{{hasSupplyDemand}}', String(hasSupplyDemand));
 
   const outputDir = resolve(process.cwd(), 'output');
   if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true });
@@ -95,17 +101,19 @@ const AXIS_NAMES: Record<keyof EightAxisScores, string> = {
   moat: '事業独占力',
 };
 
-const NO_JQUANTS_AXES: (keyof EightAxisScores)[] = ['trend', 'supplyDemand'];
-const NO_JQUANTS_MESSAGE = 'JQuants APIを無料登録すると、テクニカル分析（SEPA・ダウ理論・グランビル）と需給分析（信用倍率・出来高）が表示されます。https://jpx-jquants.com/';
+const DISABLED_MESSAGES: Partial<Record<keyof EightAxisScores, string>> = {
+  trend: 'JQuants Lightプラン以上でテクニカル分析（SEPA・ダウ理論・グランビル）が表示されます。https://jpx-jquants.com/',
+  supplyDemand: 'JQuants Standardプラン以上で需給分析（信用倍率・出来高・空売り比率）が表示されます。https://jpx-jquants.com/',
+};
 
-function buildDetailCards(input: ReportInput, hasJQuants: boolean): string {
+function buildDetailCards(input: ReportInput, hasTrend: boolean, hasSupplyDemand: boolean): string {
   return (Object.keys(AXIS_NAMES) as (keyof EightAxisScores)[])
     .map((key) => {
-      const isDisabled = !hasJQuants && NO_JQUANTS_AXES.includes(key);
+      const isDisabled = (key === 'trend' && !hasTrend) || (key === 'supplyDemand' && !hasSupplyDemand);
       const score = input.scores[key];
       const avg = input.industryAvg[key];
       const colorClass = score >= avg ? 'above' : 'below';
-      const evidenceText = isDisabled ? NO_JQUANTS_MESSAGE : input.details[key];
+      const evidenceText = isDisabled ? DISABLED_MESSAGES[key]! : input.details[key];
       return `
         <div class="detail-card${isDisabled ? ' disabled' : ''}">
           <div class="detail-card-header">

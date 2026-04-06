@@ -18,7 +18,7 @@
 
 - https://radikabunavi.com/mcp-service で登録
 - APIキーを発行
-- 約3,800社のEDINET財務データ・スクリーニングに使用
+- 約3,800社のEDINET財務データ・適時開示・大量保有報告書・スクリーニングに使用
 - 環境変数名: `RADIKABUNAVI_API_KEY`
 
 両方のキーが `.env` に設定されていることを確認したら、「セットアップ完了です。銘柄コードや企業名を教えてください。」と伝えてください。
@@ -64,23 +64,18 @@
 
 ## データ取得方法
 
-### 財務データ（ラジ株ナビMCP）
+### 財務・開示データ（ラジ株ナビMCP）
 
 ラジ株ナビMCPサーバーが接続されています。以下のツールが利用可能です:
 
-- `get_edinet_financial_data` — 銘柄コード指定で年次財務データ取得（108指標、複数年）
-- `get_edinet_financial_summary` — 最新年度の主要財務指標サマリー
-- `screen_stocks` — 条件指定スクリーニング（108指標、AND条件、ソート、業種・市場フィルタ）
-- `list_edinet_stocks` — 利用可能銘柄一覧
-
-### 適時開示（TDnet MCP）
-
-TDnet MCPサーバーが接続されています。APIキー不要です。以下のツールが利用可能です:
-
-- `get_latest_disclosures` — 最新の適時開示一覧（決算短信、配当、業績修正等）
-- `search_disclosures` — キーワード検索（企業名、銘柄コード、タイトル）
-- `get_company_disclosures` — 特定企業の適時開示一覧（4桁銘柄コード指定）
-- `get_disclosures_by_date` — 特定日の適時開示一覧
+| ツール | プラン | 内容 |
+|--------|--------|------|
+| `get_edinet_financial_data` | Free/Pro | 銘柄コード指定で年次財務データ取得（108指標、複数年） |
+| `get_edinet_financial_summary` | Free/Pro | 最新年度の主要財務指標サマリー |
+| `list_edinet_stocks` | Free/Pro | 利用可能銘柄一覧 |
+| `get_timely_disclosures` | Free/Pro | 適時開示（TDnet：決算短信、配当、業績修正等） |
+| `get_large_holdings` | Free/Pro | 大量保有報告書 |
+| `screen_stocks` | Pro限定 | 条件指定スクリーニング（108指標、AND条件、ソート、業種・市場フィルタ） |
 
 ### 株価データ（JQuants API直接呼び出し）
 

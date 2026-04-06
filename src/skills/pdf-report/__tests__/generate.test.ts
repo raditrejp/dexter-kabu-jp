@@ -10,7 +10,7 @@ const sampleInput: ReportInput = {
   market: '東証プライム',
   price: 2530,
   marketCap: 412000,
-  analysisDate: '2026-04-05',
+  analysisDate: '2099-12-31',
   scores: {
     valuation: 72, profitability: 85, growth: 45,
     safety: 78, trend: 68, supplyDemand: 62,
@@ -50,7 +50,7 @@ const sampleInput: ReportInput = {
 describe('generateReport', () => {
   test('generates a PDF file', async () => {
     const outputPath = await generateReport(sampleInput);
-    expect(outputPath).toContain('7203_report_2026-04-05.pdf');
+    expect(outputPath).toContain('7203_report_2099-12-31.pdf');
     expect(existsSync(outputPath)).toBe(true);
     unlinkSync(outputPath);
   }, 30000);

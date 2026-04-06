@@ -14,10 +14,16 @@
 - 株価データ（日足OHLCV）の取得に使用
 - 環境変数名: `JQUANTS_API_KEY`
 
-APIキー取得後、JQuantsの契約プランも確認する:
-- 「JQuantsのプランは何ですか？（Free / Light / Standard / Premium）」と聞く
-- 環境変数名: `JQUANTS_PLAN`（free / light / standard / premium）
-- プランによってテクニカル分析・需給分析・株価チャートの利用可否が変わる
+APIキー取得後、JQuantsのプランを自動判定する。ユーザーには聞かない。以下の順でAPI呼び出しして判定:
+
+1. 1年前の株価データを取得（`GET https://api.jquants.com/v2/equities/bars/daily?code=72030&from={1年前}&to={11ヶ月前}`、ヘッダー `x-api-key`）
+   - データが返ってこない → **Free**
+   - データが返ってくる → Light以上、次の判定へ
+2. 信用残データを取得（`GET https://api.jquants.com/v2/markets/margin-interest?code=72030&from={3ヶ月前}&to={今日}`、ヘッダー `x-api-key`）
+   - データが返ってこない → **Light**
+   - データが返ってくる → **Standard**以上（Premium判定は不要、Standard扱いで十分）
+
+判定結果を `JQUANTS_PLAN` として `.env` に保存する（free / light / standard）。
 
 ### 2. ラジ株ナビ APIキー（必須・無料プランあり）
 

@@ -111,14 +111,16 @@ function computeDcfGapPercent(
  * DCF乖離率、配当成長率（分割調整済み）、自社株買い検出、Altman Z'' を自動計算。
  * technical / supplyDemand はデフォルト値を設定し、呼び出し元で上書きすること。
  *
- * @param annualData   ラジ株ナビMCP get_edinet_financial_data の戻り値
- * @param currentPrice 現在株価（円）
- * @param sector       業種名（金融業判定に使用）
+ * @param annualData      ラジ株ナビMCP get_edinet_financial_data の戻り値
+ * @param currentPrice    現在株価（円）
+ * @param sector          業種名（金融業判定に使用）
+ * @param useCurrentPrice trueの場合、PER/PBR/配当利回り/marketCapを現在株価ベースで計算（デフォルトfalse=決算時株価ベース）
  */
 export function buildAnalysisInput(
   annualData: AnnualData,
   currentPrice: number,
   sector: string,
+  useCurrentPrice: boolean = false,
 ): AnalysisInput {
   const fy = annualData.fiscalYears;
   const sortedEntries: [string, FiscalYearData][] = Object.entries(fy).sort(([a], [b]) =>
@@ -144,21 +146,26 @@ export function buildAnalysisInput(
   const stockPriceAtReport = (perFromData != null && eps != null && perFromData > 0 && eps > 0)
     ? perFromData * eps : null;
 
-  // 時価総額（DCF用）: 決算時株価ベース（ラジ株ナビと一致させるため）
+  // useCurrentPrice: 現在株価 or 決算時株価を使い分け
+  const priceForCalc = useCurrentPrice ? currentPrice : (stockPriceAtReport ?? currentPrice);
+
+  // 時価総額（スコア計算用）
+  const marketCapForScore =
+    effectiveShares != null && effectiveShares > 0 ? priceForCalc * effectiveShares : null;
+
+  // 時価総額（DCF用）: 常に決算時株価ベース（DCFの理論価値との比較なので）
   const marketCapForDcf =
     stockPriceAtReport != null && effectiveShares != null && effectiveShares > 0
       ? stockPriceAtReport * effectiveShares : null;
 
-  // 時価総額（表示用）: 現在株価ベース
-  const marketCap =
-    effectiveShares != null && effectiveShares > 0 ? currentPrice * effectiveShares : null;
-
-  // PBR: 決算時株価 / BPS（ラジ株ナビと一致）
-  const pbr = stockPriceAtReport != null && bps != null && bps > 0 ? stockPriceAtReport / bps : 0;
+  // PBR
+  const pbr = bps != null && bps > 0 ? priceForCalc / bps : 0;
 
   // ── バリュエーション ────────────────────────────────────
-  // PER: ラジ株ナビと同じく決算時PER（priceEarningsRatio）を使用
-  const per = perFromData ?? (eps != null && eps > 0 ? currentPrice / eps : 0);
+  // PER
+  const per = useCurrentPrice
+    ? (eps != null && eps > 0 ? currentPrice / eps : 0)
+    : (perFromData ?? (eps != null && eps > 0 ? currentPrice / eps : 0));
 
   // NCAV = 流動資産 - 負債合計
   const currentAssets: number | null = latest.currentAssets ?? null;
@@ -166,7 +173,7 @@ export function buildAnalysisInput(
   const ncav =
     currentAssets != null && totalLiabilities != null ? currentAssets - totalLiabilities : null;
   const ncavToMarketCap =
-    ncav != null && marketCapForDcf != null && marketCapForDcf > 0 ? ncav / marketCapForDcf : 0;
+    ncav != null && marketCapForScore != null && marketCapForScore > 0 ? ncav / marketCapForScore : 0;
 
   const ebitda =
     latest.operatingIncome != null && latest.depreciationAndAmortization != null
@@ -176,7 +183,7 @@ export function buildAnalysisInput(
   const cashAndDeposits: number = latest.cashAndDeposits ?? latest.cashAndEquivalents ?? 0;
 
   // DCF乖離率
-  const dcfGapPercent = computeDcfGapPercent(sortedEntries, marketCapForDcf) ?? 0;
+  const dcfGapPercent = computeDcfGapPercent(sortedEntries, useCurrentPrice ? marketCapForScore : marketCapForDcf) ?? 0;
 
   // ── 収益性 ──────────────────────────────────────────────
   const roe: number = latest.roe ?? 0;
@@ -256,11 +263,10 @@ export function buildAnalysisInput(
 
   // ── 株主還元 ────────────────────────────────────────────
 
-  // 配当利回り: dividendPerShare / 決算時株価 × 100（ラジ株ナビと一致）
-  const priceForYield = stockPriceAtReport ?? currentPrice;
+  // 配当利回り
   const dividendYield =
-    latest.dividendPerShare != null && priceForYield > 0
-      ? (latest.dividendPerShare / priceForYield) * 100
+    latest.dividendPerShare != null && priceForCalc > 0
+      ? (latest.dividendPerShare / priceForCalc) * 100
       : 0;
 
   // 配当成長率（分割調整済み）
@@ -410,7 +416,7 @@ export function buildAnalysisInput(
       sgaRatio,
       fcfMargin,
       revenueCagr5y,
-      marketCap: marketCapForDcf ?? undefined,
+      marketCap: (useCurrentPrice ? marketCapForScore : marketCapForDcf) ?? undefined,
       operatingMarginHistory,
       roeHistory,
       fcfMarginHistory,

@@ -44,7 +44,7 @@
       /* A4 寸法 */
       --page-w: 210mm;
       --page-h: 297mm;
-      --page-pad: 14mm 14mm 12mm;
+      --page-pad: 8mm 14mm 10mm;
     }
 
     html, body {
@@ -69,10 +69,10 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding-bottom: 8px;
+      padding-bottom: 6px;
       border-bottom: 2px solid var(--blue-600);
-      margin-bottom: 12px;
-      gap: 8px;
+      margin-bottom: 8px;
+      gap: 6px;
       flex-wrap: wrap;
     }
 
@@ -127,28 +127,28 @@
 
     /* ===== ページタイトル（2・3ページ用） ===== */
     .section-title {
-      font-size: 11pt;
+      font-size: 10pt;
       font-weight: 700;
       color: var(--blue-900);
-      padding: 4px 10px;
+      padding: 3px 10px;
       background: var(--blue-50);
       border-left: 3px solid var(--blue-600);
-      margin-bottom: 10px;
+      margin-bottom: 6px;
     }
 
     /* ===== 1ページ: メイングリッド ===== */
     .p1-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-bottom: 14px;
+      gap: 10px;
+      margin-bottom: 8px;
     }
 
     /* ===== レーダーチャートコンテナ ===== */
     .radar-wrap {
       background: #fff;
       border-radius: 6px;
-      padding: 12px;
+      padding: 8px;
       border: 1px solid var(--gray-200);
       display: flex;
       flex-direction: column;
@@ -196,11 +196,12 @@
     .comment-wrap {
       background: #fff;
       border-radius: 6px;
-      padding: 12px 14px;
+      padding: 8px 10px;
       border: 1px solid var(--gray-200);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 4px;
+      font-size: 8pt;
     }
 
     .verdict-badge {
@@ -271,12 +272,12 @@
       background: #fff;
       border-radius: 6px;
       border: 1px solid var(--gray-200);
-      padding: 8px 6px;
+      padding: 5px 4px;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      gap: 2px;
     }
 
     .score-card .axis-label {
@@ -287,7 +288,7 @@
     }
 
     .score-card .score-num {
-      font-size: 18pt;
+      font-size: 15pt;
       font-weight: 800;
       line-height: 1;
     }
@@ -317,6 +318,38 @@
       color: var(--text-label);
     }
 
+    .score-card .score-num-change {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 1px;
+      line-height: 1;
+    }
+
+    .score-card .score-from {
+      font-size: 11pt;
+      font-weight: 700;
+      color: var(--gray-400);
+    }
+
+    .score-card .score-arrow {
+      font-size: 8pt;
+      color: var(--gray-400);
+    }
+
+    .score-card .score-to {
+      font-size: 15pt;
+      font-weight: 800;
+    }
+
+    .score-card .score-to.above { color: var(--blue-600); }
+    .score-card .score-to.below { color: var(--red-600); }
+
+    .score-card .score-change-label {
+      font-size: 5pt;
+      color: var(--gray-400);
+    }
+
     /* ===== 2ページ: 詳細カードグリッド ===== */
     .detail-grid {
       display: grid;
@@ -329,14 +362,14 @@
       background: #fff;
       border-radius: 6px;
       border: 1px solid var(--gray-200);
-      padding: 9px 12px;
+      padding: 7px 10px;
     }
 
     .detail-card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 5px;
+      margin-bottom: 3px;
     }
 
     .detail-axis-name {
@@ -356,11 +389,11 @@
 
     .detail-progress-bg {
       width: 100%;
-      height: 5px;
+      height: 4px;
       background: var(--gray-50);
       border-radius: 3px;
       overflow: hidden;
-      margin-bottom: 5px;
+      margin-bottom: 3px;
       position: relative;
     }
 
@@ -382,9 +415,9 @@
     }
 
     .detail-evidence {
-      font-size: 7pt;
+      font-size: 6.8pt;
       color: var(--gray-700);
-      line-height: 1.6;
+      line-height: 1.55;
     }
 
     .detail-evidence strong {
@@ -394,6 +427,39 @@
     /* 8軸目（偶数）は自然に収まるため full-width は不要。既存クラスは互換のため残す */
     .detail-card.full-width {
       grid-column: 1 / -1;
+    }
+
+    /* ===== 主要指標カード ===== */
+    .key-metrics {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .metric-card {
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid var(--gray-200);
+      padding: 6px 4px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .metric-label {
+      font-size: 6.5pt;
+      color: var(--text-label);
+      font-weight: 600;
+    }
+
+    .metric-value {
+      font-size: 11pt;
+      font-weight: 800;
+      color: var(--blue-900);
+      line-height: 1;
     }
 
     /* ===== 2ページ: チャートコンテナ ===== */
@@ -563,7 +629,7 @@
     <!-- レーダーチャート -->
     <div class="radar-wrap">
       <div class="chart-title">8軸スコア — レーダーチャート</div>
-      <canvas id="radarChart" style="max-height: 200px;"></canvas>
+      <canvas id="radarChart" style="max-height: 170px;"></canvas>
       <div class="chart-legend">
         <div class="legend-item">
           <div class="legend-dot company"></div>
@@ -571,7 +637,7 @@
         </div>
         <div class="legend-item">
           <div class="legend-dot industry"></div>
-          業界平均
+          基準値（50）
         </div>
       </div>
     </div>
@@ -590,17 +656,26 @@
   </div>
 
   <!-- 各軸の詳細スコアと根拠 -->
-  <hr style="border:none; border-top:1px solid var(--gray-200); margin-top:20px; margin-bottom:20px;">
+  <hr style="border:none; border-top:1px solid var(--gray-200); margin-top:8px; margin-bottom:8px;">
   <div class="section-title" style="margin-top:0;">各軸の詳細スコアと根拠</div>
 
   <div class="detail-grid">
     {{detailCards}}
   </div>
 
-  <!-- 株価チャート（2ページ目から） -->
+  <!-- ============================================================
+       PAGE 2: 主要指標・チャート・リスク
+  ============================================================ -->
   <div style="break-before: page; page-break-before: always;"></div>
+
+  <div class="section-title" style="margin-top: 6mm;">主要指標</div>
+  <div class="key-metrics">
+    {{keyMetricsHtml}}
+  </div>
+
+  <!-- 株価チャート -->
   <div id="priceChartSection">
-    <div class="section-title" style="margin-top:20px;">株価チャート（直近12週 日足）</div>
+    <div class="section-title" style="margin-top:12px;">株価チャート（直近12週 日足）</div>
     <div class="price-chart-wrap">
       <div class="chart-legend" style="justify-content:flex-start; gap:16px; margin-bottom:6px;">
         <div class="legend-item">
@@ -620,7 +695,7 @@
           出来高
         </div>
       </div>
-      <canvas id="priceChart" style="max-height: 170px;"></canvas>
+      <canvas id="priceChart" style="max-height: 240px;"></canvas>
     </div>
   </div>
 
@@ -633,14 +708,10 @@
     </ul>
   </div>
 
-  <!-- データソース補足 -->
-  <div class="section-title" style="margin-top:20px;">分析手法・データソース補足</div>
+  <!-- スコアの読み方 -->
+  <div class="section-title" style="margin-top:20px;">スコアの読み方</div>
   <div style="background:#fff; border-radius:6px; border:1px solid var(--gray-200); padding:10px 14px; font-size:7pt; color:var(--gray-700); line-height:1.75;">
-    <strong>財務データ:</strong> ラジ株ナビ EDINET財務データ（108指標、過去5期）を使用。<br>
-    <strong>株価データ:</strong> JQuants API v2（日足OHLCV、調整済み株価）。直近12週分を使用。<br>
-    <strong>適時開示:</strong> TDnet MCPサーバー経由で最新の開示情報を参照。<br>
-    <strong>スコア算出:</strong> 各軸0〜100の独自スコアリング。50を業界平均水準として設定。数値はシグナルの参考情報であり、将来の株価を保証するものではありません。<br>
-    <strong>DCF前提:</strong> WACC 6.5%、永続成長率 1.0%、予測期間5年。
+    各軸0〜100の独自スコアリング。各指標の絶対的な基準値をもとに算出しており、<strong>50は標準的な水準</strong>の目安です。70以上は優良、30以下は要注意が目安。青色=50以上、赤色=50未満。業界平均との比較ではなく、指標ごとの閾値に基づく評価です。数値はシグナルの参考情報であり、将来の株価を保証するものではありません。DCF前提: WACC 6.5%、永続成長率 1.0%、予測期間5年。
   </div>
 
   <footer class="page-footer">
@@ -670,6 +741,7 @@ const COLOR_RED_200   = '#FFBBBB';
 
 // ===== データ（プレースホルダーから注入） =====
 const scores = {{scoresJson}};
+const scoresAtReport = {{scoresAtReportJson}};
 const industryAvg = {{industryAvgJson}};
 const priceData = {{priceDataJson}};
 const hasSma200 = {{hasSma200}};
@@ -707,20 +779,43 @@ const AXIS_LABELS = {
         '<span class="avg-label" style="color:var(--gray-400)">JQuants ' + planMsg + '</span>' +
       '</div>';
     }
+    // 決算時→現在の変動判定
+    var hasChange = false;
+    var reportScore = score;
+    if (scoresAtReport) {
+      var rs = scoresAtReport[axis];
+      if (rs != null && rs !== score) {
+        hasChange = true;
+        reportScore = rs;
+      }
+    }
+    if (hasChange) {
+      return '<div class="score-card">' +
+        '<span class="axis-label">' + (AXIS_LABELS[axis] || axis) + '</span>' +
+        '<span class="score-num-change">' +
+          '<span class="score-from">' + reportScore + '</span>' +
+          '<span class="score-arrow">→</span>' +
+          '<span class="score-to ' + cls + '">' + score + '</span>' +
+        '</span>' +
+        '<div class="score-bar-bg">' +
+          '<div class="score-bar-fill ' + cls + '" style="width:' + score + '%"></div>' +
+        '</div>' +
+        '<span class="score-change-label">(決算時)→(現在)</span>' +
+      '</div>';
+    }
     return '<div class="score-card">' +
       '<span class="axis-label">' + (AXIS_LABELS[axis] || axis) + '</span>' +
       '<span class="score-num ' + cls + '">' + score + '</span>' +
       '<div class="score-bar-bg">' +
         '<div class="score-bar-fill ' + cls + '" style="width:' + score + '%"></div>' +
       '</div>' +
-      '<span class="avg-label">業界平均 ' + avg + '</span>' +
     '</div>';
   }).join('');
 })();
 
 // ===== SMA200凡例の表示制御 =====
 (function() {
-  if (hasSma200 !== 'true') {
+  if (!hasSma200) {
     var legend = document.getElementById('sma200Legend');
     if (legend) legend.style.display = 'none';
   }
@@ -776,7 +871,7 @@ const AXIS_LABELS = {
           spanGaps: false,
         },
         {
-          label: '業界平均',
+          label: '基準値',
           data: industry,
           backgroundColor: 'rgba(153, 153, 153, 0.08)',
           borderColor: COLOR_GRAY_400,
@@ -834,19 +929,12 @@ const AXIS_LABELS = {
   if (!hasJQuants) return;
   const ctx = document.getElementById('priceChart').getContext('2d');
 
-  function sma(prices, n) {
-    return prices.map((_, i) => {
-      if (i < n - 1) return null;
-      const slice = prices.slice(i - n + 1, i + 1);
-      return Math.round(slice.reduce((a, b) => a + b, 0) / n * 10) / 10;
-    });
-  }
-
   const labels  = priceData.map(function(d) { return d.date; });
   const prices  = priceData.map(function(d) { return d.close; });
   const volume  = priceData.map(function(d) { return d.volume; });
-  const sma50   = sma(prices, Math.min(50, prices.length));
-  const sma200  = hasSma200 === 'true' ? sma(prices, Math.min(200, prices.length)) : prices.map(() => null);
+  // SMA values are pre-calculated server-side from full historical data
+  const sma50   = priceData.map(function(d) { return d.sma50 != null ? d.sma50 : null; });
+  const sma200  = priceData.map(function(d) { return d.sma200 != null ? d.sma200 : null; });
 
   new Chart(ctx, {
     type: 'bar',
@@ -880,7 +968,7 @@ const AXIS_LABELS = {
           order: 2,
           tension: 0.3,
           spanGaps: true,
-          hidden: hasSma200 !== 'true',
+          hidden: !hasSma200,
         },
         // SMA50
         {
@@ -942,6 +1030,16 @@ const AXIS_LABELS = {
         yPrice: {
           position: 'left',
           grid: { color: COLOR_GRAY_200 },
+          min: (() => {
+            const allVals = prices.concat(sma50, sma200).filter(v => v !== null);
+            const minVal = Math.min(...allVals);
+            return Math.floor(minVal * 0.95 / 100) * 100; // 5%下に余白、100円単位
+          })(),
+          max: (() => {
+            const allVals = prices.concat(sma50, sma200).filter(v => v !== null);
+            const maxVal = Math.max(...allVals);
+            return Math.ceil(maxVal * 1.03 / 100) * 100; // 3%上に余白、100円単位
+          })(),
           ticks: {
             font: { size: 7 },
             color: COLOR_GRAY_400,

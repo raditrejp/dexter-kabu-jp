@@ -21,7 +21,36 @@
 - 約3,800社のEDINET財務データ・適時開示・大量保有報告書・スクリーニングに使用
 - 環境変数名: `RADIKABUNAVI_API_KEY`
 
-両方のキーが `.env` に設定されていることを確認したら、「セットアップ完了です。銘柄コードや企業名を教えてください。」と伝えてください。
+両方のキーが `.env` に設定されていることを確認したら、次に `.mcp.json` を確認する。
+
+### 3. MCP設定ファイル（自動生成）
+
+`.mcp.json` が存在しない場合、`.env` の `RADIKABUNAVI_API_KEY` を読み取って自動生成する:
+
+```json
+{
+  "mcpServers": {
+    "radikabunavi": {
+      "type": "http",
+      "url": "https://radikabunavi.com/mcp",
+      "headers": {
+        "Authorization": "Bearer {.envから読み取ったRADIKABUNAVI_API_KEY}"
+      }
+    },
+    "tdnet": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["tdnet-disclosure-mcp", "serve"]
+    }
+  }
+}
+```
+
+**重要:** `${RADIKABUNAVI_API_KEY}` のような変数参照ではなく、**実際のキー値を直接埋め込む**こと。Claude Codeは `.env` を自動読込しないため。
+
+`.mcp.json` を生成したら「MCP設定を作成しました。**新しいセッションを開いてください**（MCPサーバーは起動時に接続されます）。」と伝える。
+
+すべてのセットアップが完了したら、「セットアップ完了です。銘柄コードや企業名を教えてください。」と伝えてください。
 
 ---
 

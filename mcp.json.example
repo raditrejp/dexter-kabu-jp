@@ -4,7 +4,7 @@
       "type": "http",
       "url": "https://radikabunavi.com/mcp",
       "headers": {
-        "Authorization": "Bearer ${RADIKABUNAVI_API_KEY}"
+        "Authorization": "Bearer YOUR_RADIKABUNAVI_API_KEY"
       }
     },
     "tdnet": {

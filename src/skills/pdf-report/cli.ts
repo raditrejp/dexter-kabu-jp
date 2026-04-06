@@ -12,7 +12,7 @@
  *      → output/1414_data.json にスコア・データを出力
  *   2) Claude Codeがコメントを生成して output/1414_comments.json に保存
  *   3) bun run src/skills/pdf-report/cli.ts 1414 --comments-json output/1414_comments.json
- *      → output/1414_report_YYYY-MM-DD.pdf を生成
+ *      → output/YYYY-MM-DD_1414_report.pdf を生成
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';

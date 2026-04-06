@@ -73,7 +73,7 @@ export async function generateReport(input: ReportInput): Promise<string> {
   const outputDir = resolve(process.cwd(), 'output');
   if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true });
 
-  const outputPath = resolve(outputDir, `${input.code}_report_${input.analysisDate}.pdf`);
+  const outputPath = resolve(outputDir, `${input.analysisDate}_${input.code}_report.pdf`);
 
   const browser = await chromium.launch();
   const page = await browser.newPage();

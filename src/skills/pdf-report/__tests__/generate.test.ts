@@ -50,7 +50,7 @@ const sampleInput: ReportInput = {
 describe('generateReport', () => {
   test('generates a PDF file', async () => {
     const outputPath = await generateReport(sampleInput);
-    expect(outputPath).toContain('7203_report_2099-12-31.pdf');
+    expect(outputPath).toContain('2099-12-31_7203_report.pdf');
     expect(existsSync(outputPath)).toBe(true);
     unlinkSync(outputPath);
   }, 30000);
@@ -63,7 +63,7 @@ describe('generateReport', () => {
       scores: { ...sampleInput.scores, trend: 0, supplyDemand: 0 },
     };
     const outputPath = await generateReport(noJQuantsInput);
-    expect(outputPath).toContain('7203_report_');
+    expect(outputPath).toContain('_7203_report.pdf');
     expect(existsSync(outputPath)).toBe(true);
     unlinkSync(outputPath);
   }, 30000);

@@ -78,9 +78,9 @@ Step 1のJSON出力を読み、以下のJSON構造を生成する。
 bun run src/skills/pdf-report/cli.ts {銘柄コード} --comments-json output/{code}_comments.json
 ```
 
-結果: `output/{code}_report_{YYYY-MM-DD}.pdf` にPDFが出力される。
+結果: `output/{YYYY-MM-DD}_{code}_report.pdf` にPDFが出力される。
 
-PDF生成後、`open output/{code}_report_{YYYY-MM-DD}.pdf` で自動的に開く。
+PDF生成後、`open output/{YYYY-MM-DD}_{code}_report.pdf` で自動的に開く。
 
 ## エラーハンドリング
 

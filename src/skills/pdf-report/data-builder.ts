@@ -138,17 +138,27 @@ export function buildAnalysisInput(
   const effectiveShares = sharesOutstanding != null ? sharesOutstanding - treasuryShares : null;
   const bps: number | null = latest.bps ?? null;
 
-  // 時価総額: 現在株価 × 発行済株式数（自己株控除後）
+  // 決算時株価（PER × EPS）— ラジ株ナビと同じ方式
+  const eps: number | null = latest.eps ?? null;
+  const perFromData: number | null = latest.priceEarningsRatio ?? null;
+  const stockPriceAtReport = (perFromData != null && eps != null && perFromData > 0 && eps > 0)
+    ? perFromData * eps : null;
+
+  // 時価総額（DCF用）: 決算時株価ベース（ラジ株ナビと一致させるため）
+  const marketCapForDcf =
+    stockPriceAtReport != null && effectiveShares != null && effectiveShares > 0
+      ? stockPriceAtReport * effectiveShares : null;
+
+  // 時価総額（表示用）: 現在株価ベース
   const marketCap =
     effectiveShares != null && effectiveShares > 0 ? currentPrice * effectiveShares : null;
 
-  // PBR: 現在株価 / BPS
-  const pbr = bps != null && bps > 0 ? currentPrice / bps : 0;
+  // PBR: 決算時株価 / BPS（ラジ株ナビと一致）
+  const pbr = stockPriceAtReport != null && bps != null && bps > 0 ? stockPriceAtReport / bps : 0;
 
   // ── バリュエーション ────────────────────────────────────
-  const eps: number | null = latest.eps ?? null;
-  const per =
-    eps != null && eps > 0 ? currentPrice / eps : (latest.priceEarningsRatio ?? 0);
+  // PER: ラジ株ナビと同じく決算時PER（priceEarningsRatio）を使用
+  const per = perFromData ?? (eps != null && eps > 0 ? currentPrice / eps : 0);
 
   // NCAV = 流動資産 - 負債合計
   const currentAssets: number | null = latest.currentAssets ?? null;
@@ -156,7 +166,7 @@ export function buildAnalysisInput(
   const ncav =
     currentAssets != null && totalLiabilities != null ? currentAssets - totalLiabilities : null;
   const ncavToMarketCap =
-    ncav != null && marketCap != null && marketCap > 0 ? ncav / marketCap : 0;
+    ncav != null && marketCapForDcf != null && marketCapForDcf > 0 ? ncav / marketCapForDcf : 0;
 
   const ebitda =
     latest.operatingIncome != null && latest.depreciationAndAmortization != null
@@ -166,7 +176,7 @@ export function buildAnalysisInput(
   const cashAndDeposits: number = latest.cashAndDeposits ?? latest.cashAndEquivalents ?? 0;
 
   // DCF乖離率
-  const dcfGapPercent = computeDcfGapPercent(sortedEntries, marketCap) ?? 0;
+  const dcfGapPercent = computeDcfGapPercent(sortedEntries, marketCapForDcf) ?? 0;
 
   // ── 収益性 ──────────────────────────────────────────────
   const roe: number = latest.roe ?? 0;
@@ -246,10 +256,11 @@ export function buildAnalysisInput(
 
   // ── 株主還元 ────────────────────────────────────────────
 
-  // 配当利回り: dividendPerShare / currentPrice × 100
+  // 配当利回り: dividendPerShare / 決算時株価 × 100（ラジ株ナビと一致）
+  const priceForYield = stockPriceAtReport ?? currentPrice;
   const dividendYield =
-    latest.dividendPerShare != null && currentPrice > 0
-      ? (latest.dividendPerShare / currentPrice) * 100
+    latest.dividendPerShare != null && priceForYield > 0
+      ? (latest.dividendPerShare / priceForYield) * 100
       : 0;
 
   // 配当成長率（分割調整済み）
@@ -399,6 +410,7 @@ export function buildAnalysisInput(
       sgaRatio,
       fcfMargin,
       revenueCagr5y,
+      marketCap: marketCapForDcf ?? undefined,
       operatingMarginHistory,
       roeHistory,
       fcfMarginHistory,

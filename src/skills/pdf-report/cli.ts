@@ -132,6 +132,12 @@ if (commentsPath) {
   };
 
   const outputPath = await generateReport(reportInput);
+
+  // 中間ファイル削除
+  const { unlinkSync } = await import('fs');
+  try { unlinkSync(dataPath); } catch {}
+  try { unlinkSync(resolve(commentsPath)); } catch {}
+
   console.log(JSON.stringify({ pdfPath: outputPath }));
   process.exit(0);
 }

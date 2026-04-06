@@ -27,6 +27,7 @@ export interface AnalysisInput {
     sgaRatio: number;                  // %
     fcfMargin: number;                 // %
     revenueCagr5y: number;             // 売上5年CAGR（%）
+    marketCap?: number;                // 時価総額（円）EV/EBITDA計算用
     // 10年分の時系列データ（Moat用）
     operatingMarginHistory: number[];  // 過去10年のoperatingMargin
     roeHistory: number[];              // 過去10年のROE
@@ -418,7 +419,7 @@ export function calcMoat(
 
 export function calculateAllScores(input: AnalysisInput): EightAxisScores {
   return {
-    valuation: calcValuation(input.fundamentals),
+    valuation: calcValuation(input.fundamentals, input.fundamentals.marketCap),
     profitability: calcProfitability(input.fundamentals),
     growth: calcGrowth(input.fundamentals),
     safety: calcSafety(input.fundamentals),

@@ -11,7 +11,8 @@ export interface ReportInput {
   price: number;
   marketCap: number;           // 億円
   analysisDate: string;
-  scores: EightAxisScores;
+  scores: EightAxisScores;            // 現在株価ベースのスコア（メイン表示）
+  scoresAtReport?: EightAxisScores;   // 決算時株価ベースのスコア（変動表示用）
   industryAvg: EightAxisScores;
   details: Record<keyof EightAxisScores, string>;
   summary: string;
@@ -24,6 +25,16 @@ export interface ReportInput {
     sma200?: number;
   }>;
   hasJQuants?: boolean;        // デフォルトtrue。falseの場合はtrend/supplyDemand/株価チャートをグレーアウト
+  hasSupplyDemandData?: boolean; // 需給データ（信用残）が取得済みかどうか
+  keyMetrics?: {
+    per?: number;
+    pbr?: number;
+    eps?: number;
+    bps?: number;
+    roe?: number;
+    payoutRatio?: number;
+    marginBalanceRatio?: number | null; // null=未取得
+  };
 }
 
 export async function generateReport(input: ReportInput): Promise<string> {
@@ -34,8 +45,8 @@ export async function generateReport(input: ReportInput): Promise<string> {
   const planLevel = { free: 0, light: 1, standard: 2, premium: 3 }[plan] ?? 0;
   // トレンド: Light以上（株価データが必要）
   const hasTrend = input.hasJQuants !== false && planLevel >= 1;
-  // 需給: Standard以上 + 実データが必要（信用残取得ロジック未実装のため現在は常にfalse）
-  const hasSupplyDemand = false; // TODO: 信用残データ取得ロジック実装後に有効化
+  // 需給: Standard以上 + 実データが必要
+  const hasSupplyDemand = planLevel >= 2 && input.hasSupplyDemandData === true;
   const hasJQuants = hasTrend; // 株価チャート表示もLight以上
   const priceData = hasJQuants ? (input.priceData ?? []) : [];
   const hasSma200 = hasJQuants && priceData.some(d => d.sma200 !== undefined);
@@ -50,15 +61,17 @@ export async function generateReport(input: ReportInput): Promise<string> {
     .replaceAll('{{marketCap}}', formatMarketCap(input.marketCap))
     .replaceAll('{{analysisDate}}', input.analysisDate)
     .replaceAll('{{scoresJson}}', JSON.stringify(input.scores))
+    .replaceAll('{{scoresAtReportJson}}', JSON.stringify(input.scoresAtReport ?? null))
     .replaceAll('{{industryAvgJson}}', JSON.stringify(input.industryAvg))
     .replaceAll('{{summaryComment}}', escapeHtml(input.summary))
     .replaceAll('{{detailCards}}', buildDetailCards(input, hasTrend, hasSupplyDemand))
     .replaceAll('{{priceDataJson}}', JSON.stringify(priceData))
     .replaceAll('{{risksHtml}}', buildRisksHtml(input.risks))
-    .replaceAll('{{hasSma200}}', String(hasSma200))
-    .replaceAll('{{hasJQuants}}', String(hasJQuants))
-    .replaceAll('{{hasTrend}}', String(hasTrend))
-    .replaceAll('{{hasSupplyDemand}}', String(hasSupplyDemand));
+    .replaceAll('{{keyMetricsHtml}}', buildKeyMetricsHtml(input.keyMetrics))
+    .replaceAll('{{hasSma200}}', hasSma200 ? 'true' : 'false')
+    .replaceAll('{{hasJQuants}}', hasJQuants ? 'true' : 'false')
+    .replaceAll('{{hasTrend}}', hasTrend ? 'true' : 'false')
+    .replaceAll('{{hasSupplyDemand}}', hasSupplyDemand ? 'true' : 'false');
 
   const outputDir = resolve(process.cwd(), 'output');
   if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true });
@@ -128,6 +141,25 @@ function buildDetailCards(input: ReportInput, hasTrend: boolean, hasSupplyDemand
         </div>`;
     })
     .join('\n');
+}
+
+function buildKeyMetricsHtml(metrics?: ReportInput['keyMetrics']): string {
+  if (!metrics) return '';
+  const items: Array<{ label: string; value: string }> = [
+    { label: 'PER', value: metrics.per != null ? `${metrics.per}倍` : '—' },
+    { label: 'PBR', value: metrics.pbr != null ? `${metrics.pbr.toFixed(2)}倍` : '—' },
+    { label: 'EPS', value: metrics.eps != null ? `${metrics.eps.toFixed(1)}円` : '—' },
+    { label: 'BPS', value: metrics.bps != null ? `${metrics.bps.toFixed(0)}円` : '—' },
+    { label: 'ROE', value: metrics.roe != null ? `${metrics.roe.toFixed(1)}%` : '—' },
+    { label: '配当性向', value: metrics.payoutRatio != null ? `${metrics.payoutRatio.toFixed(1)}%` : '—' },
+    { label: '信用倍率', value: metrics.marginBalanceRatio != null ? `${metrics.marginBalanceRatio.toFixed(2)}倍` : '—' },
+  ];
+  return items.map(m =>
+    `<div class="metric-card">
+      <span class="metric-label">${m.label}</span>
+      <span class="metric-value">${m.value}</span>
+    </div>`
+  ).join('\n');
 }
 
 function buildRisksHtml(risks: Array<{ title: string; description: string }>): string {

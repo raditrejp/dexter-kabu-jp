@@ -80,7 +80,7 @@ bun run src/skills/pdf-report/cli.ts {銘柄コード} --comments-json output/{c
 
 結果: `output/{code}_report_{YYYY-MM-DD}.pdf` にPDFが出力される。
 
-ユーザーに出力パスを伝える。
+PDF生成後、`open output/{code}_report_{YYYY-MM-DD}.pdf` で自動的に開く。
 
 ## エラーハンドリング
 

@@ -35,7 +35,11 @@ bun run src/skills/pdf-report/cli.ts {銘柄コード}
 
 ### Step 2: コメント生成（Claude Code自身）
 
-Step 1のJSON出力を読み、以下を生成して `output/{code}_comments.json` に保存する:
+Step 1のJSON出力を読み、以下のJSON構造を生成する。
+
+**重要:** コメントJSONの内容はユーザーに表示しないこと。Bashツールで `cat << 'EOF' > output/{code}_comments.json` を使って直接ファイルに書き込む。Writeツールは使わない（内容が画面に表示されてしまうため）。
+
+ファイル形式:
 
 ```json
 {

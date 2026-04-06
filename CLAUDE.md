@@ -14,6 +14,11 @@
 - 株価データ（日足OHLCV）の取得に使用
 - 環境変数名: `JQUANTS_API_KEY`
 
+APIキー取得後、JQuantsの契約プランも確認する:
+- 「JQuantsのプランは何ですか？（Free / Light / Standard / Premium）」と聞く
+- 環境変数名: `JQUANTS_PLAN`（free / light / standard / premium）
+- プランによってテクニカル分析・需給分析・株価チャートの利用可否が変わる
+
 ### 2. ラジ株ナビ APIキー（必須・無料プランあり）
 
 - https://radikabunavi.com/mcp-service で登録

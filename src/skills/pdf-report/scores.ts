@@ -33,13 +33,6 @@ export interface AnalysisInput {
     fcfMarginHistory: number[];        // 過去10年のfcfMargin
     sgaRatioHistory: number[];         // 過去10年のsgaRatio
   };
-  industryAvg: {
-    per: number;
-    operatingMarginPercent: number;
-    // 追加
-    evToEbitda: number;
-    operatingIncomePerEmployee: number;
-  };
   technical: {
     sepaStage: 'S1' | 'S2' | 'S3' | 'S4';
     dowTrend: 'up' | 'range' | 'down';
@@ -92,24 +85,21 @@ export function lerp(
 
 export function calcValuation(
   data: Pick<AnalysisInput['fundamentals'], 'dcfGapPercent' | 'per' | 'pbr' | 'ncavToMarketCap' | 'ebitda' | 'interestBearingDebt' | 'cashAndDeposits'>,
-  industry: Pick<AnalysisInput['industryAvg'], 'per' | 'evToEbitda'>,
   marketCap?: number,
 ): number {
   // 主指標: DCF乖離率（50%）
   const dcfScore = lerp(data.dcfGapPercent, -30, 30, 10, 90);
 
-  // 補助: EV/EBITDA vs業界平均（20%）
+  // 補助: EV/EBITDA（20%）— 絶対基準: 8倍以下→割安、15倍以上→割高
   let evEbitdaScore = 50;
   if (data.ebitda > 0 && marketCap) {
     const ev = marketCap + data.interestBearingDebt - data.cashAndDeposits;
     const evEbitda = ev / data.ebitda;
-    const ratio = evEbitda / industry.evToEbitda;
-    evEbitdaScore = lerp(ratio, 0.5, 1.5, 90, 10); // 低い方が割安
+    evEbitdaScore = lerp(evEbitda, 15, 5, 10, 90); // 低い方が割安
   }
 
-  // 補助: PER vs業界平均（15%）
-  const perRatio = data.per / industry.per;
-  const perScore = lerp(perRatio, 0.5, 1.5, 90, 10);
+  // 補助: PER（15%）— 絶対基準: 8倍以下→割安、25倍以上→割高
+  const perScore = lerp(data.per, 25, 8, 10, 90);
 
   // 補助: PBR（10%）
   let pbrScore = 50;
@@ -131,7 +121,6 @@ export function calcValuation(
 
 export function calcProfitability(
   data: Pick<AnalysisInput['fundamentals'], 'roe' | 'operatingMarginPercent' | 'roa' | 'ebitdaMargin' | 'operatingIncomePerEmployee'>,
-  industry: Pick<AnalysisInput['industryAvg'], 'operatingMarginPercent' | 'operatingIncomePerEmployee'>,
 ): number {
   // 主指標: ROE（40%）
   let roeScore: number;
@@ -141,9 +130,8 @@ export function calcProfitability(
   else if (data.roe >= 5) roeScore = 40;
   else roeScore = 20;
 
-  // 補助: 営業利益率 vs業界平均（20%）
-  const marginRatio = data.operatingMarginPercent / industry.operatingMarginPercent;
-  const marginScore = lerp(marginRatio, 0.5, 2.0, 10, 90);
+  // 補助: 営業利益率（20%）— 絶対基準: 15%以上→高収益、5%以下→低収益
+  const marginScore = lerp(data.operatingMarginPercent, 3, 15, 10, 90);
 
   // 補助: EBITDAマージン（15%）
   let ebitdaScore: number;
@@ -153,12 +141,8 @@ export function calcProfitability(
   else if (data.ebitdaMargin >= 5) ebitdaScore = 30;
   else ebitdaScore = 15;
 
-  // 補助: 従業員あたり営業利益（15%）
-  let empScore = 50;
-  if (industry.operatingIncomePerEmployee > 0) {
-    const empRatio = data.operatingIncomePerEmployee / industry.operatingIncomePerEmployee;
-    empScore = lerp(empRatio, 0.5, 2.0, 10, 90);
-  }
+  // 補助: 従業員あたり営業利益（15%）— 絶対基準: 1500万以上→高効率、300万以下→低効率
+  const empScore = lerp(data.operatingIncomePerEmployee, 3000000, 15000000, 10, 90);
 
   // 補助: ROA（10%）
   let roaScore = 50;
@@ -434,8 +418,8 @@ export function calcMoat(
 
 export function calculateAllScores(input: AnalysisInput): EightAxisScores {
   return {
-    valuation: calcValuation(input.fundamentals, input.industryAvg),
-    profitability: calcProfitability(input.fundamentals, input.industryAvg),
+    valuation: calcValuation(input.fundamentals),
+    profitability: calcProfitability(input.fundamentals),
     growth: calcGrowth(input.fundamentals),
     safety: calcSafety(input.fundamentals),
     trend: calcTrend(input.technical),

@@ -16,7 +16,7 @@
 
 APIキー取得後、JQuantsのプランを自動判定する。ユーザーには聞かない。以下の順でAPI呼び出しして判定:
 
-1. 直近の株価データを取得（`GET https://api.jquants.com/v2/equities/bars/daily?code=72030&from={1年前}&to={今日}`、ヘッダー `x-api-key`）
+1. 直近の株価データを取得（`GET https://api.jquants.com/v2/equities/bars/daily?code=72030&from={3ヶ月前}&to={今日}`、ヘッダー `x-api-key`）
    - 返ってきたデータの最古日付が12週以内 → **Free**
    - 12週より古いデータも含まれる → Light以上、次の判定へ
 2. 信用残データを取得（`GET https://api.jquants.com/v2/markets/margin-interest?code=72030&from={3ヶ月前}&to={今日}`、ヘッダー `x-api-key`）

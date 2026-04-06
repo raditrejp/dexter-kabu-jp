@@ -3,6 +3,9 @@
 .env.local
 .env.*
 
+# MCP config (contains API keys)
+.mcp.json
+
 # Python
 __pycache__/
 *.py[cod]

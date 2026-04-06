@@ -41,13 +41,10 @@ export async function generateReport(input: ReportInput): Promise<string> {
   const templatePath = resolve(dirname(new URL(import.meta.url).pathname), 'templates', 'report.html');
   let html = readFileSync(templatePath, 'utf-8');
 
-  const plan = process.env.JQUANTS_PLAN ?? 'free';
-  const planLevel = { free: 0, light: 1, standard: 2, premium: 3 }[plan] ?? 0;
-  // トレンド: Light以上（株価データが必要）
-  const hasTrend = input.hasJQuants !== false && planLevel >= 1;
-  // 需給: Standard以上 + 実データが必要
-  const hasSupplyDemand = planLevel >= 2 && input.hasSupplyDemandData === true;
-  const hasJQuants = hasTrend; // 株価チャート表示もLight以上
+  // ReportInputのフラグで判定（process.envには依存しない）
+  const hasTrend = input.hasJQuants !== false;
+  const hasSupplyDemand = input.hasSupplyDemandData === true;
+  const hasJQuants = hasTrend;
   const priceData = hasJQuants ? (input.priceData ?? []) : [];
   const hasSma200 = hasJQuants && priceData.some(d => d.sma200 !== undefined);
 

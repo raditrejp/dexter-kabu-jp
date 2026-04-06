@@ -47,6 +47,33 @@ claude
 → 3シナリオ（保守・ベース・楽観）で理論株価を算出
 ```
 
+## VSCodeで使う
+
+VSCodeのClaude Code拡張でも使えます。
+
+### セットアップ
+
+1. GitHubからclone
+```bash
+git clone https://github.com/raditrejp/dexter-kabu-jp.git
+```
+
+2. VSCodeで `dexter-kabu-jp` フォルダを開く
+
+3. Claude Codeのチャットで何か話しかける（例: 「こんにちは」）
+
+4. 初回はAPIキーの設定を案内されるので入力する
+   - JQuants APIキー
+   - ラジ株ナビ APIキー
+
+5. 設定完了後、**新しいチャットを開く**（`+`ボタン）— MCPサーバーの再接続に必要
+
+6. 分析開始
+```
+> トヨタを分析して
+> レポート出して 1414
+```
+
 ## 独立アプリとして使う場合（ターミナル）
 
 Claude Codeを使わず、独立したチャットアプリとして使う場合の手順です。

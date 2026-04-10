@@ -1,0 +1,21 @@
+name: 高配当バリュー
+description: 配当利回りが高く、財務健全性も備えたバリュー銘柄を抽出する
+conditions:
+  - metric: "dividendYield"
+    operator: ">="
+    value: 3
+  - metric: "roe"
+    operator: ">="
+    value: 8
+  - metric: "pbr"
+    operator: "<="
+    value: 1.5
+  - metric: "per"
+    operator: "<="
+    value: 20
+  - metric: "equityRatio"
+    operator: ">="
+    value: 30
+sort:
+  metric: "dividendYield"
+  order: "desc"

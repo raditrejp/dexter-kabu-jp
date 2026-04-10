@@ -1,0 +1,18 @@
+name: 小型成長株
+description: 売上成長率が高く収益性も備えた、将来性のある小型成長株を抽出する
+conditions:
+  - metric: "salesGrowth"
+    operator: ">="
+    value: 15
+  - metric: "roe"
+    operator: ">="
+    value: 10
+  - metric: "per"
+    operator: "<="
+    value: 30
+  - metric: "operatingMargin"
+    operator: ">="
+    value: 5
+sort:
+  metric: "salesGrowth"
+  order: "desc"

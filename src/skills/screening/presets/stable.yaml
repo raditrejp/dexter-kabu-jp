@@ -1,0 +1,18 @@
+name: 安定高財務
+description: 自己資本比率が高く財務基盤が強固で、安定した収益性を持つ銘柄を抽出する
+conditions:
+  - metric: "equityRatio"
+    operator: ">="
+    value: 50
+  - metric: "roe"
+    operator: ">="
+    value: 8
+  - metric: "pbr"
+    operator: "<="
+    value: 2.0
+  - metric: "operatingMargin"
+    operator: ">="
+    value: 5
+sort:
+  metric: "equityRatio"
+  order: "desc"

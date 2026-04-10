@@ -1,0 +1,21 @@
+name: 成長株（CAN-SLIM風）
+description: 高ROE・高成長率を持ち、適正なバリュエーションの成長銘柄を抽出する
+conditions:
+  - metric: "roe"
+    operator: ">="
+    value: 15
+  - metric: "salesGrowth"
+    operator: ">="
+    value: 10
+  - metric: "per"
+    operator: ">="
+    value: 10
+  - metric: "per"
+    operator: "<="
+    value: 35
+  - metric: "operatingMargin"
+    operator: ">="
+    value: 8
+sort:
+  metric: "roe"
+  order: "desc"

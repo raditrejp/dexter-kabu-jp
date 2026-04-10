@@ -1,0 +1,18 @@
+name: 逆張りバリュー
+description: PBR・PERが極めて低く、財務健全性を保ちながら市場に割安放置された銘柄を抽出する
+conditions:
+  - metric: "pbr"
+    operator: "<="
+    value: 0.8
+  - metric: "per"
+    operator: "<="
+    value: 12
+  - metric: "roe"
+    operator: ">="
+    value: 5
+  - metric: "equityRatio"
+    operator: ">="
+    value: 40
+sort:
+  metric: "pbr"
+  order: "asc"

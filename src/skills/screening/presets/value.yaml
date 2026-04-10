@@ -1,0 +1,18 @@
+name: 割安高収益
+description: ROEが高く収益性に優れ、PER・PBRともに割安な銘柄を抽出する
+conditions:
+  - metric: "roe"
+    operator: ">="
+    value: 12
+  - metric: "per"
+    operator: "<="
+    value: 15
+  - metric: "pbr"
+    operator: "<="
+    value: 1.2
+  - metric: "operatingMargin"
+    operator: ">="
+    value: 10
+sort:
+  metric: "per"
+  order: "asc"

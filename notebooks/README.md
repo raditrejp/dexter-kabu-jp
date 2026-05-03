@@ -14,6 +14,8 @@ Single Colab notebook to evaluate Kronos-small vs GBM on Japanese stocks (7203/6
 
 If Colab disconnects mid-run, just `Runtime > Run all` again. Cells 5 and 6 read existing `*.pkl` and skip windows already done.
 
+**Caveat (cross-day resume):** Window origins are anchored to "latest trading day − 20 − i × 21 trading days" relative to the current latest row in the fetched data. If you resume on a later trading day, Cell 3 will fetch one more bar, every origin shifts forward by one day, and **none of the cached pickle entries match** — the notebook will silently re-compute all 108 Kronos + 108 GBM windows. To finish a multi-session run cleanly, complete it within the same trading day, or delete `/content/kronos_results.pkl` and `/content/gbm_results.pkl` before re-running across a market close.
+
 ## Before saving / committing
 
 If you intend to save the notebook back to git, **clear all outputs first** (`Edit > Clear all outputs`) so the API key bearer token (if accidentally printed) and stock prices do not leak into the repo.

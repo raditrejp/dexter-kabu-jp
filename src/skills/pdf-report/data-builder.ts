@@ -312,6 +312,9 @@ export function buildAnalysisInput(
     }
   } else {
     // フォールバック: 発行済株式数の減少で自社株買いを推定
+    // 株式分割/併合の誤検出を避けるため、減少幅は [50%, 99%] の範囲に限定。
+    // 自社株買いは通常数%〜十数%なので十分カバーされ、併合(>50%減)や
+    // 分割(株数増)は除外される。
     for (
       let i = sortedEntries.length - 1;
       i >= 1 && i >= sortedEntries.length - 3;
@@ -319,7 +322,9 @@ export function buildAnalysisInput(
     ) {
       const currShares = sortedEntries[i][1].sharesOutstanding;
       const prevShares = sortedEntries[i - 1][1].sharesOutstanding;
-      if (currShares != null && prevShares != null && currShares < prevShares * 0.99) {
+      if (currShares == null || prevShares == null || prevShares <= 0) continue;
+      const ratio = currShares / prevShares;
+      if (ratio >= 0.5 && ratio < 0.99) {
         hasBuyback = true;
         if (i === sortedEntries.length - 1) buybackRecency = 'within1y';
         else if (buybackRecency === 'none') buybackRecency = 'within3y';

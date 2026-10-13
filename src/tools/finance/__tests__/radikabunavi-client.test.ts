@@ -142,5 +142,102 @@ describe('RadikabuNaviClient', () => {
       expect(sentHeaders[1]['mcp-session-id']).toBe('session-abc');
       expect(sentHeaders[2]['mcp-session-id']).toBe('session-abc');
     });
+
+    // ── 2026-10 追従: ステートレス・isError・80%予告 ──────────────
+
+    const sse = (obj: unknown) => 'event: message\ndata: ' + JSON.stringify(obj);
+
+    test('works without mcp-session-id (stateless server): no throw, no session header sent', async () => {
+      const sentHeaders: Record<string, string>[] = [];
+      (globalThis as any).fetch = mock(async (_url: string, opts: RequestInit) => {
+        sentHeaders.push(Object.fromEntries(Object.entries(opts.headers as Record<string, string>)));
+        const body = JSON.parse(opts.body as string);
+        return {
+          ok: true,
+          status: 200,
+          statusText: 'OK',
+          headers: new Headers(), // mcp-session-id なし
+          text: async () => body.method === 'initialize'
+            ? sse({ jsonrpc: '2.0', result: { protocolVersion: '2024-11-05' }, id: 0 })
+            : body.method === 'tools/call'
+              ? sse({ jsonrpc: '2.0', result: { content: [{ type: 'text', text: '{"ok":true}' }] }, id: body.id })
+              : '',
+        } as Response;
+      });
+
+      const client = new RadikabuNaviClient('rk_test');
+      const result = await client.callTool('test', {});
+      expect(result).toBe('{"ok":true}');
+      expect(sentHeaders.length).toBe(3);
+      for (const h of sentHeaders) expect(h['mcp-session-id']).toBeUndefined();
+    });
+
+    // サーバーの errorResult（isError: true, HTTP 200）と同じ形
+    const errorBody = sse({
+      jsonrpc: '2.0',
+      result: { content: [{ type: 'text', text: '本日の利用上限に達しました。日本時間の0時にリセットされます。' }], isError: true },
+      id: 1,
+    });
+
+    test('callTool throws the server message when result.isError is true', async () => {
+      mockFetch([
+        { body: sse({ jsonrpc: '2.0', result: {}, id: 0 }) },
+        { body: '' },
+        { body: errorBody },
+      ]);
+      const client = new RadikabuNaviClient('rk_test');
+      await expect(client.callTool('get_edinet_financial_data', { code: '7203' })).rejects.toThrow('本日の利用上限に達しました');
+    });
+
+    test('callToolData throws when result.isError is true (error text is never returned as data)', async () => {
+      mockFetch([
+        { body: sse({ jsonrpc: '2.0', result: {}, id: 0 }) },
+        { body: '' },
+        { body: errorBody },
+      ]);
+      const client = new RadikabuNaviClient('rk_test');
+      await expect(client.callToolData('get_edinet_financial_data', { code: '7203' })).rejects.toThrow('利用上限');
+    });
+
+    test('callToolData returns only the first text when the 80% usage notice is appended (JSON stays parseable)', async () => {
+      // applyResultNotice は成功結果の content の末尾に text を1件足す
+      const notice = '【ご案内】本日の利用回数が上限の80%に達しました。';
+      mockFetch([
+        { body: sse({ jsonrpc: '2.0', result: {}, id: 0 }) },
+        { body: '' },
+        {
+          body: sse({
+            jsonrpc: '2.0',
+            result: { content: [{ type: 'text', text: '{\n  "companyName": "テスト株式会社"\n}' }, { type: 'text', text: notice }] },
+            id: 1,
+          }),
+        },
+      ]);
+      const client = new RadikabuNaviClient('rk_test');
+      const data = await client.callToolData('get_edinet_financial_data', { code: '7203' });
+      expect(JSON.parse(data)).toEqual({ companyName: 'テスト株式会社' });
+    });
+
+    test('callTool keeps all texts (notice included) for LLM display', async () => {
+      mockFetch([
+        { body: sse({ jsonrpc: '2.0', result: {}, id: 0 }) },
+        { body: '' },
+        { body: sse({ jsonrpc: '2.0', result: { content: [{ type: 'text', text: 'data' }, { type: 'text', text: 'notice' }] }, id: 1 }) },
+      ]);
+      const client = new RadikabuNaviClient('rk_test');
+      expect(await client.callTool('t', {})).toBe('data\nnotice');
+    });
+
+    test('safeErrorMessage passes the MCP guidance text through unchanged', async () => {
+      const { safeErrorMessage } = await import('../../../utils/safe-error.js');
+      mockFetch([
+        { body: sse({ jsonrpc: '2.0', result: {}, id: 0 }) },
+        { body: '' },
+        { body: errorBody },
+      ]);
+      const client = new RadikabuNaviClient('rk_test');
+      const err = await client.callTool('x', {}).catch((e) => e);
+      expect(safeErrorMessage(err)).toBe('本日の利用上限に達しました。日本時間の0時にリセットされます。');
+    });
   });
 });

@@ -37,7 +37,7 @@ On first launch, the AI will guide you through API key setup:
 → Auto-runs DCF + Altman Z'' + PEG ratio + net-net + SEPA + Dow Theory + Granville + supply-demand + Monte Carlo + correlation
 
 > Find stocks with ROE >= 15% and dividend yield >= 3%
-→ Screen ~3,800 companies
+→ Screen ~3,700 companies
 
 > Run DCF analysis on 7203
 → 3-scenario (conservative/base/optimistic) fair value calculation
@@ -104,6 +104,8 @@ Dexter remembers past analyses. Analyzing the same stock again shows how signals
 | **RadikabuNavi MCP** | EDINET-based financials, key ratios, screener | Recommended (free tier) |
 | **TradingView MCP** | Technical indicators (RSI, MACD, BB, etc.) | Optional |
 | **TDnet MCP** | Timely disclosure filings | Optional |
+
+> RadikabuNavi prices, PER, PBR and dividend yield are values as of each filing (pseudo price at earnings), not real-time market prices. Real-time analysis uses your own J-Quants key. Connection guide: https://radikabunavi.com/mcp-claude-guide
 
 ## Available Skills
 

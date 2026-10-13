@@ -16,12 +16,24 @@ const SENSITIVE_PATTERNS = [
 ];
 
 /**
+ * An error whose message is already written for the end user (e.g. the usage-limit
+ * guidance returned by the ラジ株ナビ MCP server). safeErrorMessage returns it as-is.
+ */
+export class UserFacingError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UserFacingError';
+  }
+}
+
+/**
  * Return a user-safe error string.
  *
  * - Known HTTP status codes → friendly Japanese message
  * - Everything else → generic message + original error class name for debugging
  */
 export function safeErrorMessage(error: unknown): string {
+  if (error instanceof UserFacingError) return error.message;
   const raw = error instanceof Error ? error.message : String(error);
 
   // Rate limit

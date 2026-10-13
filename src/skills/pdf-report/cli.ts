@@ -23,42 +23,17 @@ import { analyzeTechnical, calcSMA, type OHLCVBar } from './technical.js';
 import { fetchSupplyDemandData } from './supply-demand.js';
 import { generateReport, type ReportInput } from './generate.js';
 import { JQuantsClient } from '../../tools/finance/jquants-client.js';
+import { RadikabuNaviClient } from '../../tools/finance/radikabunavi-client.js';
+import { parseSectorMarket } from '../../tools/finance/radikabunavi-helpers.js';
 import type { JQuantsPlan } from '../../config/index.js';
 
-// ── ラジ株ナビMCP直接呼び出し ──────────────────────────────
+// ── ラジ株ナビMCP呼び出し ──────────────────────────────
+// 共通クライアントを使う（isError・80%予告の追加 text・ステートレス応答の扱いをそちらで一括処理）。
+// 最初の text だけを返すので、JSON.parse してよい。
+let radikabuClient: RadikabuNaviClient | null = null;
 async function callRadikabunavi(apiKey: string, toolName: string, toolArgs: Record<string, unknown>): Promise<string> {
-  const endpoint = 'https://radikabunavi.com/mcp';
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json, text/event-stream',
-    'Authorization': `Bearer ${apiKey}`,
-  };
-
-  // initialize
-  const initResp = await fetch(endpoint, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ jsonrpc: '2.0', method: 'initialize', params: { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 'kabu-dexter-cli', version: '1.0.0' } }, id: 0 }),
-  });
-  const sid = initResp.headers.get('mcp-session-id');
-  if (sid) headers['mcp-session-id'] = sid;
-
-  // notifications/initialized
-  await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized', params: {} }) });
-
-  // tools/call
-  const resp = await fetch(endpoint, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ jsonrpc: '2.0', method: 'tools/call', params: { name: toolName, arguments: toolArgs }, id: 1 }),
-  });
-  const text = await resp.text();
-  const dataLines = [...text.matchAll(/^data:\s*(.+)$/gm)];
-  const jsonStr = dataLines.length > 0 ? dataLines[dataLines.length - 1][1] : text.match(/^(\{.+\})$/m)?.[1] ?? text;
-  const parsed = JSON.parse(jsonStr);
-  if (parsed.error) throw new Error(`MCP error: ${parsed.error.message}`);
-  const contents = parsed.result?.content ?? [];
-  return contents.filter((c: { type: string }) => c.type === 'text').map((c: { text: string }) => c.text).join('\n');
+  radikabuClient ??= new RadikabuNaviClient(apiKey);
+  return radikabuClient.callToolData(toolName, toolArgs);
 }
 
 // ── .env読み込み ──────────────────────────────────────────
@@ -158,24 +133,25 @@ const financialRaw = await callRadikabunavi(radikabuKey, 'get_edinet_financial_d
 const annualData: AnnualData = JSON.parse(financialRaw);
 
 // companyNameはトップレベルから取得
-const companyName = ((annualData as Record<string, unknown>).companyName as string) ?? code4;
+const companyName = ((annualData as unknown as Record<string, unknown>).companyName as string) ?? code4;
 
-// sector/marketはlist_edinet_stocksから取得（軽量API）
+// sector/marketはsearch_stocksから取得（list_edinet_stocks は銘柄一覧を返さなくなった）
 let sector = '';
 let market = '';
 try {
-  const listRaw = await callRadikabunavi(radikabuKey, 'list_edinet_stocks', {});
-  const listData = JSON.parse(listRaw);
-  const stocks = listData.stocks ?? listData;
-  if (Array.isArray(stocks)) {
-    const match = stocks.find((s: Record<string, unknown>) => String(s.code) === code4);
-    if (match) {
-      sector = (match.sector ?? match.industry ?? '') as string;
-      market = (match.market ?? '') as string;
-    }
+  const searchRaw = await callRadikabunavi(radikabuKey, 'search_stocks', { query: code4, limit: 5 });
+  const found = parseSectorMarket(searchRaw, code4);
+  if (found) {
+    sector = found.sector;
+    market = found.market;
   }
-} catch {
-  // sector/marketなしでも続行
+} catch (error) {
+  console.error(`  ! search_stocks 失敗: ${error instanceof Error ? error.message : String(error)}`);
+}
+if (!sector) {
+  // 黙って続行しない。金融業（銀行・保険・証券・その他金融）は業種が分からないと金融業向けの分岐に入らず、
+  // 一般事業会社の基準でスコアが出てしまう。
+  console.error('  ⚠ 業種を取得できませんでした。金融業の銘柄の場合、スコアが一般事業会社の基準で計算されます。');
 }
 const isFinancial = ['銀行業', '保険業', '証券、商品先物取引業', 'その他金融業'].includes(sector);
 
@@ -222,8 +198,12 @@ if (planLevel >= 1 && process.env.JQUANTS_API_KEY) {
   }
   console.error(`  → ${bars.length}日分取得, 現在株価: ${currentPrice}`);
 } else {
-  // Freeプラン: サマリーから株価取得
-  currentPrice = summary.stockPrice ?? summary.price ?? 0;
+  // Freeプラン: 決算時の擬似株価（PER × EPS。有報の記載値から復元できる値。市場の現在値ではない）
+  const fyKeys = Object.keys(annualData.fiscalYears).sort();
+  const latestFy = fyKeys.length > 0 ? annualData.fiscalYears[fyKeys[fyKeys.length - 1]] : undefined;
+  const per = Number(latestFy?.per ?? latestFy?.priceEarningsRatio);
+  const eps = Number(latestFy?.eps);
+  currentPrice = per > 0 && eps > 0 ? per * eps : 0;
   console.error(`Step 2: スキップ（Freeプラン）, 決算時株価: ${currentPrice}`);
 }
 

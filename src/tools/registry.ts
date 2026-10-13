@@ -17,6 +17,7 @@ import { createGetStockPrice, GET_STOCK_PRICE_DESCRIPTION } from './finance/stoc
 import { tradingviewAvailable, createGetTechnicalIndicators, GET_TECHNICAL_INDICATORS_DESCRIPTION } from './finance/tradingview.js';
 import { tdnetAvailable, createGetDisclosures, GET_DISCLOSURES_DESCRIPTION } from './finance/tdnet.js';
 import { RadikabuNaviClient } from './finance/radikabunavi-client.js';
+import { KEY_RATIO_METRICS, extractKeyRatios } from './finance/radikabunavi-helpers.js';
 import { safeErrorMessage } from '../utils/safe-error.js';
 
 // Cache MCP client to avoid duplicate init handshakes across getToolRegistry() calls
@@ -204,19 +205,25 @@ export function getToolRegistry(model: string): RegisteredTool[] {
           name: 'get_key_ratios',
           tool: new DynamicStructuredTool({
             name: 'get_key_ratios',
-            description: '日本企業の主要財務指標サマリーを取得。',
+            description: '日本企業の最新年度の主要財務指標（PER・PBR・ROE・配当利回り等。決算時点の値）を取得。',
             schema: z.object({
               code: z.string().describe('証券コード（例: "7203"）'),
             }),
             func: async ({ code }) => {
               try {
-                return await mcpClient.callTool('get_edinet_financial_summary', { code });
+                // get_edinet_financial_summary は廃止済み（2026-04-15）。get_edinet_financial_data から最新年度の指標を取り出す。
+                const raw = await mcpClient.callToolData('get_edinet_financial_data', {
+                  code,
+                  metrics: [...KEY_RATIO_METRICS],
+                  excludeForecast: true,
+                });
+                return JSON.stringify(extractKeyRatios(raw, code));
               } catch (error: unknown) {
                 return JSON.stringify({ error: safeErrorMessage(error) });
               }
             },
           }),
-          description: `日本企業の主要財務指標サマリーを取得。
+          description: `日本企業の最新年度の主要財務指標を取得（有報の決算時点の値。PER・PBR・配当利回りは決算時の擬似株価ベースで、市場の現在値ではない）。
 
 ## When to Use
 - PER、PBR、ROE等のバリュエーション指標を確認したいとき
@@ -258,7 +265,7 @@ export function getToolRegistry(model: string): RegisteredTool[] {
               }
             },
           }),
-          description: `日本株スクリーニング。約4,000社の財務データから条件検索。
+          description: `日本株スクリーニング。約3,700社の財務データ（EDINET有報ベース）から条件検索。応答は { metricLabels, results } 形式で、銘柄の配列は results に入る。
 
 ## When to Use
 - 特定条件に合う銘柄を探したいとき（例: 「ROE15%以上かつPBR1倍以下」）
@@ -269,7 +276,13 @@ export function getToolRegistry(model: string): RegisteredTool[] {
 - テクニカル条件でのスクリーニング（→ get_technical_indicators）
 
 ## 利用可能な指標例
-roe, operatingMargin, equityRatio, salesGrowth, netCash, fcf, dividendPerShare 等108指標`,
+roe, per, pbr, operatingMargin, equityRatio, salesGrowth, dividendYield 等（指標は英語キーで指定。全一覧はサーバーのツール説明を参照）
+
+## 注意
+- 市場の現在株価は返さない（PER・PBR・配当利回りは決算時の擬似株価ベース）
+- 条件に使った指標が欠けている銘柄は黙って結果から外れる
+- foreignShareholdingRatio / institutionalShareholdingRatio だけ 0〜1 の表記（他は % 表記）
+- limit の最大は100。続きは offset で取得`,
         },
       );
   }

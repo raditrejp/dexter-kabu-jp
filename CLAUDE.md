@@ -57,7 +57,7 @@ APIキー取得後、JQuantsのプランを自動判定する。ユーザーに�
 
 - https://radikabunavi.com/mcp-service で登録
 - APIキーを発行
-- 約3,800社のEDINET財務データ・適時開示・大量保有報告書・スクリーニングに使用
+- 約3,700社のEDINET財務データ・適時開示・大量保有報告書・スクリーニングに使用
 - 環境変数名: `RADIKABUNAVI_API_KEY`
 
 両方のキーが `.env` に設定されていることを確認したら、次に `.mcp.json` を確認する。
@@ -181,16 +181,37 @@ APIキー取得後、JQuantsのプランを自動判定する。ユーザーに�
 
 ### 財務・開示データ（ラジ株ナビMCP）
 
-ラジ株ナビMCPサーバーが接続されています。以下のツールが利用可能です:
+ラジ株ナビMCPサーバーが接続されています。以下のツールが利用可能です（約3,700社のEDINET有報ベース。全プランで使えます。無料・ライト・スタンダード・プロの4プランで違うのは1日の利用上限と、四半期データ等の一部機能です）。
 
-| ツール | プラン | 内容 |
-|--------|--------|------|
-| `get_edinet_financial_data` | Free/Pro | 銘柄コード指定で年次財務データ取得（108指標、複数年） |
-| `get_edinet_financial_summary` | Free/Pro | 最新年度の主要財務指標サマリー |
-| `list_edinet_stocks` | Free/Pro | 利用可能銘柄一覧 |
-| `get_timely_disclosures` | Free/Pro | 適時開示（TDnet：決算短信、配当、業績修正等） |
-| `get_large_holdings` | Free/Pro | 大量保有報告書 |
-| `screen_stocks` | Pro限定 | 条件指定スクリーニング（108指標、AND条件、ソート、業種・市場フィルタ） |
+| ツール | 内容 |
+|--------|------|
+| `get_edinet_financial_data` | 銘柄コード指定で年次財務データ取得（複数年。`metrics`・`fiscalYear`・`excludeForecast` 等で絞れる）。最新年度の PER・PBR・ROE・配当利回りもここから取る |
+| `get_stock_analysis` | 銘柄の総合分析（財務・理想株価・6軸スコア・DCF・業種比較・会社予想を1回で返す。返したセクション数ぶん利用回数を使う） |
+| `get_ideal_price` / `get_stock_score` / `get_dcf_valuation` | 理想株価・6軸スコア・DCF |
+| `get_industry_benchmark` | 業種の中央値・四分位・業種内順位 |
+| `get_earnings_forecast` / `get_earnings_flash` | 会社業績予想・決算速報（四半期（q1/q2/q3）はライト以上） |
+| `get_timely_disclosures` | 適時開示（TDnet：決算短信、配当、業績修正等。`category` で絞れる） |
+| `get_large_holdings` / `get_major_shareholders_history` / `get_investor_portfolio` | 大量保有報告書・大株主の推移・投資家の保有銘柄 |
+| `get_main_customers` | 有報の主要な販売先（売上高10%以上）の順引き・逆引き |
+| `search_stocks` | 会社名・証券コードの検索（`sector`・`market` が返る） |
+| `screen_stocks` | 条件指定スクリーニング（AND条件、ソート、業種・市場フィルタ。応答は `{ metricLabels, results }`） |
+| `screen_by_framework` | 定型の投資フレーム（バリュー・成長・高配当・業績回復）で探す |
+| `list_edinet_stocks` | カバレッジの説明文だけ（銘柄一覧ではない。銘柄の業種・市場は `search_stocks` で取る） |
+| `add_to_watchlist` / `get_watchlist` / `remove_from_watchlist` / `update_watchlist_note` / `report_issue` | 監視リスト・データ誤りの報告（API キー・OAuth 認証時のみ） |
+
+※ このリポジトリのツール（`registry.ts`）が直接つなぐのは `get_financials`（`get_edinet_financial_data`）・`get_key_ratios`（同じく `get_edinet_financial_data` から最新年度の指標を取り出す）・`company_screener`（`screen_stocks`）の3つ。それ以外はスキルや Claude Code の MCP 接続から直接呼ぶ。`get_edinet_financial_summary` は廃止済み。
+※ 一覧は `https://radikabunavi.com/.well-known/mcp/server-card.json` で確認できる。
+
+**データの性質:** ラジ株ナビが返す価格・PER・PBR・配当利回りは、有報の決算時点の値（決算時の擬似株価 = PER×EPS ベース）で、市場の現在値ではない。「現在株価」として表示しないこと。現在株価の分析は利用者自身の JQuants キーで行う。
+
+**利用回数と制限（`tools/call` だけ数える。`initialize`・`tools/list` は数えない）:**
+
+- 1日の上限: 無料 100 / ライト 250 / スタンダード 1,000 / プロ 2,000（日本時間の0時にリセット）
+- 複数件を返すツールは返した件数ぶん数える（`get_earnings_flash`・`get_watchlist`・`get_industry_benchmark`・`get_stock_analysis`（最大6））
+- 連打制限: ツール実行は 10回/秒・60回/分、接続の手続き（`initialize` 等）は 30回/秒・300回/分。超えるとツール実行は `isError` の案内文、手続きは HTTP 429 で返る。複数ツールを同時に呼ぶときは 10回/秒を超えないようにする
+- 上限到達・連打制限・引数エラーは HTTP 200 のまま `isError: true` で返る（`RadikabuNaviClient` は Error にして案内文をそのまま見せる）。上限の80%に達した日は成功結果に案内文の text が1件追加されるので、JSON を読むときは最初の text だけを使う（`callToolData`）
+
+**接続方法:** `https://radikabunavi.com/mcp` に Streamable HTTP で直接つなぐ（`mcp-remote` は不要）。サーバーはステートレスで `mcp-session-id` を返さない。認証は API キー（`Authorization: Bearer rk_...`）か、対応クライアントでの OAuth。手順は https://radikabunavi.com/mcp-claude-guide
 
 ### 株価データ（JQuants API直接呼び出し）
 

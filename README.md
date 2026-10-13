@@ -4,7 +4,7 @@ Claude Codeで使える日本株分析AIキット
 
 > GitHub 18,000+ starsの金融AIエージェント [virattt/dexter](https://github.com/virattt/dexter) をベースに、[JPMorgan Python Training](https://github.com/jpmorganchase/python-training) のモンテカルロ法・Altman Z''等の分析手法を導入。Claude Code統合・ラジ株ナビMCP連携・独自分析スキルを追加した日本株対応拡張版です。
 
-「トヨタを分析して」と聞くだけで、DCF・モンテカルロ・Altman Z''・PEGレシオ・ネットネット株判定・SEPA・需給分析など15のスキルが全自動で走ります。約3,800社の財務データとスクリーニングに対応。
+「トヨタを分析して」と聞くだけで、DCF・モンテカルロ・Altman Z''・PEGレシオ・ネットネット株判定・SEPA・需給分析など15のスキルが全自動で走ります。約3,700社の財務データとスクリーニングに対応。
 
 ## 特徴
 
@@ -38,7 +38,7 @@ claude
 → DCF + Altman Z'' + PEGレシオ + ネットネット + CFパターン + SEPA + ダウ理論 + グランビル + 需給 + モンテカルロ + 相関を自動実行
 
 > ROE15%以上で配当利回り3%以上の銘柄を探して
-→ 約3,800社からスクリーニング
+→ 約3,700社からスクリーニング
 
 > レポートを出して
 → 分析結果をレーダーチャート付きPDFレポートとして出力
@@ -221,7 +221,10 @@ Dexterは過去の分析を記憶します。同じ銘柄を再度分析する�
 EDINETデータに基づく財務データ・スクリーナー機能をMCPプロトコル経由で提供します。
 
 - 公式サイト: https://radikabunavi.com/mcp-service
+- 接続手順: https://radikabunavi.com/mcp-claude-guide （`https://radikabunavi.com/mcp` に直接つなぐ。API キーまたは OAuth）
 - 環境変数: `RADIKABUNAVI_API_KEY`
+- **データの注意:** ラジ株ナビが返す価格・PER・PBR・配当利回りは、有価証券報告書の決算時点の値（決算時の擬似株価ベース）で、リアルタイムの市場価格ではありません。現在株価に基づく分析は、利用者自身の J-Quants API キーで取得した株価を使います。
+- 1日の利用上限はプランで異なります（無料100回 / ライト250回 / スタンダード1,000回 / プロ2,000回。日本時間0時にリセット）。
 
 ### TradingView MCP
 

@@ -6,14 +6,24 @@
  *
  * 認証: Authorization: Bearer <API_KEY>
  * プロトコル: JSON-RPC 2.0 (MCP Streamable HTTP)
- * セッション管理: mcp-session-id ヘッダー
+ * セッション管理: ラジ株ナビの /mcp はステートレス（2026-04-05〜）で mcp-session-id を返さない。
+ *   返ってきた場合（旧仕様・他サーバー）だけ、以降のリクエストに付けて送り返す。
+ *
+ * 応答の扱い:
+ *   - エラーは HTTP 200 のまま result.isError=true で返る（上限到達・バースト制限・引数誤り等）。
+ *     callTool / callToolData は isError のとき Error を投げる（文面は利用者向けの案内文）。
+ *   - 1日の上限の80%に達した日は、成功結果の content に案内文の text が1件追加される。
+ *     JSON を読む用途は callToolData（最初の text だけ）を使う。
  */
+
+import { UserFacingError } from '../../utils/safe-error.js';
 
 const MCP_ENDPOINT = 'https://radikabunavi.com/mcp';
 const TIMEOUT_MS = 30_000;
 
 interface McpResult {
   content?: Array<{ type: string; text: string }>;
+  isError?: boolean;
   [key: string]: unknown;
 }
 
@@ -51,19 +61,14 @@ export class RadikabuNaviClient {
       clientInfo: { name: 'kabu-dexter', version: '1.0.0' },
     }, 0);
 
-    if (!this.sessionId) {
-      throw new Error('MCP server did not return mcp-session-id');
-    }
-
+    // mcp-session-id が無くてもよい（ステートレスサーバー）。あれば rawRequest が保持して送り返す。
     await this.rawRequest('notifications/initialized', {}, null);
     this.initialized = true;
   }
 
+  /** 全 text をつないで返す（LLM にそのまま見せる用途。80% 予告の text も含む）。 */
   async callTool(name: string, args: Record<string, unknown>): Promise<string> {
-    await this.initialize();
-
-    const result = await this.request('tools/call', { name, arguments: args });
-
+    const result = await this.callToolRaw(name, args);
     if (result.content && Array.isArray(result.content)) {
       return result.content
         .filter((c: { type: string }) => c.type === 'text')
@@ -71,6 +76,30 @@ export class RadikabuNaviClient {
         .join('\n');
     }
     return JSON.stringify(result);
+  }
+
+  /**
+   * 最初の text だけを返す（JSON.parse する用途）。
+   * 上限の80%到達日は2件目に案内文が付くため、つないだ文字列は JSON として読めない。
+   */
+  async callToolData(name: string, args: Record<string, unknown>): Promise<string> {
+    const result = await this.callToolRaw(name, args);
+    const first = result.content?.find((c: { type: string }) => c.type === 'text');
+    if (first) return first.text;
+    return JSON.stringify(result);
+  }
+
+  private async callToolRaw(name: string, args: Record<string, unknown>): Promise<McpResult> {
+    await this.initialize();
+    const result = await this.request('tools/call', { name, arguments: args });
+    if (result.isError) {
+      const message = (result.content ?? [])
+        .filter((c: { type: string }) => c.type === 'text')
+        .map((c: { text: string }) => c.text)
+        .join('\n');
+      throw new UserFacingError(message || `ラジ株ナビMCPがエラーを返しました（${name}）`);
+    }
+    return result;
   }
 
   async listTools(): Promise<unknown[]> {

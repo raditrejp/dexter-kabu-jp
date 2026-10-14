@@ -30,12 +30,22 @@ Comprehensive Analysis Progress:
 
 ## Phase 0: 銘柄の基本情報取得
 
-`get_key_ratios` と `get_financials` で対象銘柄の基本情報を取得し、以降のフェーズで共有する。
+**まず `get_stock_analysis` を1回呼ぶ**（引数 `code`。現在株価を `get_stock_price` で取得済みなら `currentPrice` に渡す）。
+財務（直近5期）・理想株価・6軸スコア・業種比較・会社予想と進捗・DCF を1回で返すので、Phase 0 の基本情報と Phase 1 のファンダメンタル材料はここから取る。個別ツールを何本も呼ばない（利用回数の節約）。
+
+- 応答の `sections[]` のうち `status: "unavailable"` のセクションだけ、個別ツール（`detailTool`）や `get_key_ratios` / `get_financials` で補う
+- 応答に `userNotice` / `usage.withheld`（今日の利用回数が足りず返さなかったセクション）があれば、**レポートの冒頭近くで利用者に伝える**。有料プランの案内は `userNotice` の文面に従う。返っていないセクションは「データなし」として扱い、推測で埋めない
+- `priceDateNote`: 理想株価・DCF の判定は決算期末の擬似株価との比較であり、現在の市場株価ではない。判定を書くときにこの時点を添える
+- 上場廃止・REIT・ETF 等で分析不可のときは理由が返る。その場合は以降のフェーズに進まず、利用者に理由を伝える
+- ツールが使えない（`get_stock_analysis` がエラー・未接続）ときは、従来どおり `get_key_ratios` と `get_financials` で基本情報を取得する
+- `followUp.instruction` の監視リスト・深掘りの案内は、レポート末尾で一言にまとめて伝える
+
+`get_stock_analysis` を呼べなかった場合のみ、`get_key_ratios` と `get_financials` で対象銘柄の基本情報を取得し、以降のフェーズで共有する。
 
 **取得項目:**
-- 銘柄名、セクター、業種
+- 銘柄名、セクター、業種（`get_stock_analysis` の `companyName` / `sector`）
 - 時価総額
-- 現在株価
+- 現在株価（`get_stock_price`。利用者自身の J-Quants キーのとき）
 - 決算期
 
 **金融業（銀行・保険・証券）の場合:** Phase 2（Altman Z''）はスキップ対象としてフラグを立てる。
@@ -43,6 +53,8 @@ Comprehensive Analysis Progress:
 ## Phase 1: ファンダメンタル分析
 
 ### 1a: DCFバリュエーション
+
+Phase 0 の `get_stock_analysis` に `dcf` / `idealPrice` セクションがあれば、それを理論株価の根拠として使う（`dcf` スキルは3シナリオ・感度分析など、より詳しく見たいときに呼ぶ）。
 
 `skill` ツールで `dcf-valuation` を呼び出す。
 
@@ -279,7 +291,7 @@ Phase 7 の出力が完了したら、以下のように確認する:
 
 全フェーズを実行すると多数のツール呼び出しが必要になる。効率化のため:
 
-1. Phase 0 で取得したデータは以降のフェーズで再利用する
+1. Phase 0 の `get_stock_analysis`（1回で6セクション）で取れたデータは以降のフェーズで再利用し、同じ内容を個別ツールで取り直さない
 2. 同じデータソースへの重複呼び出しを避ける
 3. エージェントのイテレーション上限に注意し、必要に応じてフェーズを優先順位でトリアージする
 

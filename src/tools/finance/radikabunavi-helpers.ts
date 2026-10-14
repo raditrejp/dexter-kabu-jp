@@ -88,3 +88,28 @@ export function parseSectorMarket(raw: string, code: string): SectorMarket | nul
     market: typeof match.market === 'string' ? match.market : '',
   };
 }
+
+/**
+ * get_stock_analysis（総合分析）の応答（JSON文字列）を LLM に渡す形に整える。
+ *
+ * - 回数不足で返さなかったセクション（usage.withheld）があるとき、先頭に userNotice を足す。
+ *   サーバーの usage.withheldNote（有料プランの案内つき）をそのまま使い、必ず利用者に伝えさせる。
+ * - 値は加工しない。JSON として読めない・withheld が無い場合は入力をそのまま返す。
+ */
+export function formatStockAnalysis(raw: string): string {
+  let data: unknown;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    return raw;
+  }
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) return raw;
+  const usage = (data as { usage?: { withheld?: unknown; withheldNote?: unknown } }).usage;
+  const withheld = Array.isArray(usage?.withheld) ? (usage.withheld as Array<{ title?: unknown }>) : [];
+  if (withheld.length === 0) return raw;
+  const titles = withheld.map((w) => (typeof w?.title === 'string' ? w.title : '')).filter(Boolean).join('、');
+  const note = typeof usage?.withheldNote === 'string' && usage.withheldNote
+    ? usage.withheldNote
+    : `今日の利用回数が足りないため、次のセクションは返していません: ${titles}。`;
+  return JSON.stringify({ userNotice: `${note}\n分析結果を伝えるとき、返していないセクションがあることを必ず利用者に伝えてください。`, ...(data as object) });
+}

@@ -199,7 +199,7 @@ APIキー取得後、JQuantsのプランを自動判定する。ユーザーに�
 | `list_edinet_stocks` | カバレッジの説明文だけ（銘柄一覧ではない。銘柄の業種・市場は `search_stocks` で取る） |
 | `add_to_watchlist` / `get_watchlist` / `remove_from_watchlist` / `update_watchlist_note` / `report_issue` | 監視リスト・データ誤りの報告（API キー・OAuth 認証時のみ） |
 
-※ このリポジトリのツール（`registry.ts`）が直接つなぐのは `get_financials`（`get_edinet_financial_data`）・`get_key_ratios`（同じく `get_edinet_financial_data` から最新年度の指標を取り出す）・`company_screener`（`screen_stocks`）の3つ。それ以外はスキルや Claude Code の MCP 接続から直接呼ぶ。`get_edinet_financial_summary` は廃止済み。
+※ このリポジトリのツール（`registry.ts`）が直接つなぐのは `get_financials`（`get_edinet_financial_data`）・`get_key_ratios`（同じく `get_edinet_financial_data` から最新年度の指標を取り出す）・`get_stock_analysis`（総合分析。`code`・任意の `currentPrice`。回数不足で返さなかったセクションがあれば `userNotice` を付けて返す）・`company_screener`（`screen_stocks`）の4つ。それ以外はスキルや Claude Code の MCP 接続から直接呼ぶ。`get_edinet_financial_summary` は廃止済み。
 ※ 一覧は `https://radikabunavi.com/.well-known/mcp/server-card.json` で確認できる。
 
 **データの性質:** ラジ株ナビが返す価格・PER・PBR・配当利回りは、有報の決算時点の値（決算時の擬似株価 = PER×EPS ベース）で、市場の現在値ではない。「現在株価」として表示しないこと。現在株価の分析は利用者自身の JQuants キーで行う。
@@ -208,6 +208,8 @@ APIキー取得後、JQuantsのプランを自動判定する。ユーザーに�
 
 - 1日の上限: 無料 100 / ライト 250 / スタンダード 1,000 / プロ 2,000（日本時間の0時にリセット）
 - 複数件を返すツールは返した件数ぶん数える（`get_earnings_flash`・`get_watchlist`・`get_industry_benchmark`・`get_stock_analysis`（最大6））
+  - `get_stock_analysis` は返したセクション数ぶん（最大6）。残りが足りないときは足りる分だけ返し、返さなかったものは `usage.withheld` に挙がる（利用者に必ず伝える）。データが無く理由だけのセクションと、上場廃止・REIT・ETF 等（分析せず理由を返す）は数えない
+  - 「分析して」では `comprehensive-analysis` スキルがまず `get_stock_analysis` を1回呼び、足りない情報だけ個別ツールで補う
 - 連打制限: ツール実行は 10回/秒・60回/分、接続の手続き（`initialize` 等）は 30回/秒・300回/分。超えるとツール実行は `isError` の案内文、手続きは HTTP 429 で返る。複数ツールを同時に呼ぶときは 10回/秒を超えないようにする
 - 上限到達・連打制限・引数エラーは HTTP 200 のまま `isError: true` で返る（`RadikabuNaviClient` は Error にして案内文をそのまま見せる）。上限の80%に達した日は成功結果に案内文の text が1件追加されるので、JSON を読むときは最初の text だけを使う（`callToolData`）
 

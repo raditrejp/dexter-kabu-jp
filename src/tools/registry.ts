@@ -17,7 +17,7 @@ import { createGetStockPrice, GET_STOCK_PRICE_DESCRIPTION } from './finance/stoc
 import { tradingviewAvailable, createGetTechnicalIndicators, GET_TECHNICAL_INDICATORS_DESCRIPTION } from './finance/tradingview.js';
 import { tdnetAvailable, createGetDisclosures, GET_DISCLOSURES_DESCRIPTION } from './finance/tdnet.js';
 import { RadikabuNaviClient } from './finance/radikabunavi-client.js';
-import { KEY_RATIO_METRICS, extractKeyRatios } from './finance/radikabunavi-helpers.js';
+import { KEY_RATIO_METRICS, extractKeyRatios, formatStockAnalysis } from './finance/radikabunavi-helpers.js';
 import { safeErrorMessage } from '../utils/safe-error.js';
 
 // Cache MCP client to avoid duplicate init handshakes across getToolRegistry() calls
@@ -232,6 +232,49 @@ export function getToolRegistry(model: string): RegisteredTool[] {
 ## When NOT to Use
 - 詳細な財務データや推移が必要なとき（→ get_financials）
 - 株価データが必要なとき（→ get_stock_price）`,
+        },
+        {
+          name: 'get_stock_analysis',
+          tool: new DynamicStructuredTool({
+            name: 'get_stock_analysis',
+            description: '日本企業の総合分析を1回で取得（財務・理想株価・6軸スコア・業種比較・会社予想・DCF）。',
+            schema: z.object({
+              code: z.string().describe('証券コード（例: "7203"、"140A"）'),
+              currentPrice: z.number().positive().optional().describe('利用者自身が確認した現在株価（円）。省略時は決算時の擬似株価で判定'),
+            }),
+            func: async ({ code, currentPrice }) => {
+              try {
+                const args: Record<string, unknown> = { code };
+                if (currentPrice !== undefined) args.currentPrice = currentPrice;
+                // 80%到達日は2件目に案内文が付くので、JSON を読むため最初の text だけ使う
+                const raw = await mcpClient.callToolData('get_stock_analysis', args);
+                return formatStockAnalysis(raw);
+              } catch (error: unknown) {
+                return JSON.stringify({ error: safeErrorMessage(error) });
+              }
+            },
+          }),
+          description: `日本企業の総合分析を1回の呼び出しで取得します（ラジ株ナビ get_stock_analysis）。EDINET有報ベース。
+
+## 返るセクション（sections[]）
+financials（直近5期の財務と一過性損益の注記）/ idealPrice（理想株価）/ stockScore（6軸スコア）/ industryBenchmark（業種比較）/ earningsForecast（会社予想・進捗）/ dcf（DCF）。各セクションに詳細を見るための個別ツール名（detailTool）が付く。
+
+## When to Use
+- 「○○を分析して」など、銘柄の全体像をまず掴みたいとき（個別ツールを何本も呼ぶ前にまずこれを1回）
+- 総合分析スキル（comprehensive-analysis）のファンダメンタル部分
+
+## When NOT to Use
+- 1つの指標だけ欲しいとき（→ get_key_ratios / get_financials）
+- 株価・テクニカル・需給（→ get_stock_price / get_technical_indicators）
+- 適時開示（→ get_disclosures）
+
+## 利用回数
+返したセクション数ぶん（最大6回分）の利用回数を使う。残りが足りないときは足りる分だけ返し、返さなかったセクションを usage.withheld に挙げる。応答に userNotice があれば必ず利用者に伝えること。データを返せなかったセクション（status: "unavailable"）は数えない。上場廃止・REIT・ETF等は分析せず理由を返す（0回）。
+
+## 注意
+- 理想株価・DCFの判定は決算期末の擬似株価との比較（priceDateNote）。現在の市場株価ではない。判定を伝えるときはこの時点も添える
+- currentPrice は利用者自身が確認した株価（利用者自身の J-Quants キーで取得した get_stock_price の値でよい）を渡す
+- 応答の followUp に従い、分析後に監視リストと深掘りの案内を一言にまとめて伝える`,
         },
         {
           name: 'company_screener',

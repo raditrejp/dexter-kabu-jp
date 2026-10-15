@@ -15,6 +15,22 @@ Claude Codeで使える日本株分析AIキット
 - **4つのデータソース**: JQuants API v2 + ラジ株ナビ MCP + TradingView MCP + TDnet MCP
 - **永続メモリ**: 過去の分析を記憶し、シグナルの変化を追跡
 
+## Dexter を入れなくても、Claude・ChatGPT ならすぐ使える
+
+ラジ株ナビの MCP は、コネクタに URL を追加して Google か Apple でログインするだけで使えます。API キーもインストールも不要です（無料プランは1日100回）。
+
+```
+https://radikabunavi.com/mcp
+```
+
+「任天堂を分析して」と話しかけると、財務データ・理想株価・6軸スコア・業種比較がまとめて返ります。
+
+- Claude（claude.ai・デスクトップ）: [画像つき手順](https://radikabunavi.com/mcp-claude-guide)
+- ChatGPT（開発者モード。Plus / Pro / Business）: [画像つき手順](https://radikabunavi.com/mcp-chatgpt-guide)
+- Claude Code: `claude mcp add --transport http radikabunavi https://radikabunavi.com/mcp` で追加し、`/mcp` からログイン（[手順](https://radikabunavi.com/claude-code-edinet)）
+
+以下は、JQuants・TradingView・TDnet も組み合わせた分析キット Dexter を使う場合の手順です。
+
 ## Claude Codeで使う（推奨）
 
 Claude Codeをお持ちの場合、最も簡単に使えます。LLM APIキーは不要です。
@@ -30,6 +46,8 @@ claude
 初回起動時にAIが案内に従ってAPIキーの設定を行います:
 1. **JQuants APIキー**（無料プランあり）— 株価データ用
 2. **ラジ株ナビ APIキー**（無料プランあり）— 財務データ用
+
+> ラジ株ナビ単体なら、API キーなしでログインだけでも接続できます（上の `claude mcp add` と `/mcp`）。ただし、このリポジトリ同梱の設定（`.claude/settings.json`）と PDF レポート出力は API キーを前提にしているため、Dexter として使うときは API キーを設定してください。
 
 ### 使い方
 

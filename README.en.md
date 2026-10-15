@@ -14,6 +14,22 @@ For detailed documentation, see the [Japanese README](README.md).
 - **4 data sources**: JQuants API v2 + RadikabuNavi MCP + TradingView MCP + TDnet MCP
 - **Persistent memory**: Remembers past analyses and tracks signal changes over time
 
+## No need to install Dexter: use it right away from Claude or ChatGPT
+
+The RadikabuNavi MCP works by adding a URL as a connector and signing in with Google or Apple. No API key and no installation are needed (the free plan allows 100 calls per day).
+
+```
+https://radikabunavi.com/mcp
+```
+
+Just say "Analyze Nintendo" and it returns financial data, ideal price, 6-axis score, and sector comparison in one go.
+
+- Claude (claude.ai / desktop): [Step-by-step guide with screenshots (Japanese)](https://radikabunavi.com/mcp-claude-guide)
+- ChatGPT (Developer Mode; Plus / Pro / Business): [Step-by-step guide with screenshots (Japanese)](https://radikabunavi.com/mcp-chatgpt-guide)
+- Claude Code: add it with `claude mcp add --transport http radikabunavi https://radikabunavi.com/mcp`, then sign in from `/mcp` ([Guide (Japanese)](https://radikabunavi.com/claude-code-edinet))
+
+The rest of this README covers Dexter, the analysis kit that also combines J-Quants, TradingView, and TDnet.
+
 ## Use with Claude Code (Recommended)
 
 If you have Claude Code, this is the easiest way to get started. No LLM API key needed.
@@ -29,6 +45,8 @@ claude
 On first launch, the AI will guide you through API key setup:
 1. **JQuants API key** (free tier available) — for stock price data
 2. **RadikabuNavi API key** (free tier available) — for financial data
+
+> RadikabuNavi alone can also be connected with just a sign-in and no API key (the `claude mcp add` and `/mcp` steps above). However, the bundled settings in this repository (`.claude/settings.json`) and PDF report output assume an API key, so set one when using it as Dexter.
 
 ### Usage
 
